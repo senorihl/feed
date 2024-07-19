@@ -12,13 +12,15 @@ import {
 } from "@react-navigation/native";
 import {
   Provider as PaperProvider,
-  MD3DarkTheme as PaperDarkTheme,
-  MD3LightTheme as PaperDefaultTheme,
+  MD3DarkTheme,
+  MD3LightTheme,
 } from "react-native-paper";
+import merge from "deepmerge";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider as StoreProvider } from "react-redux";
 import store, { persistor } from "./src/store";
 import { Root } from "./src/screens/Root";
+import { i18n } from "./src/translations";
 
 type ReducerInitialState = {
   store: boolean;
@@ -44,6 +46,11 @@ const reducer: React.Reducer<ReducerInitialState, ReducerAction> = (
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
+
+const CombinedDefaultTheme = merge(MD3LightTheme, NavigationLightTheme);
+const CombinedDarkTheme = merge(MD3DarkTheme, NavigationDarkTheme);
+
+export type CombinedThemeType = typeof CombinedDefaultTheme;
 
 const App: React.FC = () => {
   const routeNameRef = React.useRef<string>();
@@ -111,7 +118,7 @@ const App: React.FC = () => {
     <SafeAreaProvider>
       <NavigationContainer
         theme={
-          appearenceMode === "dark" ? NavigationDarkTheme : NavigationLightTheme
+          appearenceMode === "dark" ? CombinedDarkTheme : CombinedDefaultTheme
         }
         ref={navigationRef}
         onReady={() => {
@@ -130,7 +137,9 @@ const App: React.FC = () => {
         }}
       >
         <PaperProvider
-          theme={appearenceMode === "dark" ? PaperDarkTheme : PaperDefaultTheme}
+          theme={
+            appearenceMode === "dark" ? CombinedDarkTheme : CombinedDefaultTheme
+          }
         >
           <StoreProvider store={store}>
             <PersistGate loading={null} persistor={persistor}>
