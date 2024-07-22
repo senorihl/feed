@@ -19,10 +19,8 @@ import { i18n } from "../translations";
 
 const locales = {
   en: "English",
-  fr: "French",
+  fr: "Français",
   es: "Español",
-  ja: "日本語",
-  zh: "中文",
 };
 
 export const Settings: React.FC = () => {

@@ -39,15 +39,11 @@ export type Translation = {
 import { en } from "./en";
 import { fr } from "./fr";
 import { es } from "./es";
-import { zh } from "./zh";
-import { ja } from "./ja";
 
 export const i18n = new I18n({
   en,
   fr,
   es,
-  zh,
-  ja,
 });
 
 i18n.defaultLocale = "en";
