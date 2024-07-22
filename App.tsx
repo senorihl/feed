@@ -2,6 +2,7 @@ import React from "react";
 import { StatusBar } from "expo-status-bar";
 import { PersistGate } from "redux-persist/integration/react";
 import * as SplashScreen from "expo-splash-screen";
+import * as Font from "expo-font";
 import * as NavigationBar from "expo-navigation-bar";
 import { StyleSheet, View, useColorScheme, Platform } from "react-native";
 import {
@@ -20,17 +21,18 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider as StoreProvider } from "react-redux";
 import store, { persistor } from "./src/store";
 import { Root } from "./src/screens/Root";
-import { i18n } from "./src/translations";
 
 type ReducerInitialState = {
   store: boolean;
+  font: boolean;
 };
 
 const initialState: ReducerInitialState = {
   store: false,
+  font: false,
 };
 
-type ReducerAction = { type: "STORE" };
+type ReducerAction = { type: "STORE" } | { type: "FONT" };
 
 const reducer: React.Reducer<ReducerInitialState, ReducerAction> = (
   state,
@@ -39,6 +41,8 @@ const reducer: React.Reducer<ReducerInitialState, ReducerAction> = (
   switch (action.type) {
     case "STORE":
       return { ...state, store: true };
+    case "FONT":
+      return { ...state, font: true };
     default:
       throw new Error();
   }
@@ -53,6 +57,7 @@ const CombinedDarkTheme = merge(MD3DarkTheme, NavigationDarkTheme);
 export type CombinedThemeType = typeof CombinedDefaultTheme;
 
 const App: React.FC = () => {
+  const [loaded, error] = Font.useFonts({});
   const routeNameRef = React.useRef<string>();
   const navigationRef = useNavigationContainerRef();
   const scheme = useColorScheme();
@@ -60,10 +65,8 @@ const App: React.FC = () => {
   const [appearenceMode, setAppearenceMode] = React.useState(scheme);
 
   const onLayoutRootView = React.useCallback(async () => {
-    if (state.store) {
-      await SplashScreen.hideAsync();
-    }
-  }, [state]);
+    await SplashScreen.hideAsync();
+  }, []);
 
   React.useEffect(() => {
     if (Platform.OS === "android") {
@@ -82,6 +85,12 @@ const App: React.FC = () => {
       );
     }
   }, [appearenceMode]);
+
+  React.useEffect(() => {
+    if (loaded || error) {
+      dispatch({ type: "FONT" });
+    }
+  }, [loaded, error]);
 
   const onStoreRehydrated = () => {
     setAppearenceMode(store.getState().configuration.appearenceMode || scheme);
@@ -116,45 +125,49 @@ const App: React.FC = () => {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer
-        theme={
-          appearenceMode === "dark" ? CombinedDarkTheme : CombinedDefaultTheme
-        }
-        ref={navigationRef}
-        onReady={() => {
-          routeNameRef.current = navigationRef.getCurrentRoute()?.name;
-        }}
-        onStateChange={async () => {
-          const previousRouteName = routeNameRef.current;
-          const currentRouteName = navigationRef.getCurrentRoute()?.name;
+      <StoreProvider store={store}>
+        <PersistGate loading={null} persistor={persistor}>
+          {state.store && state.font && (
+            <NavigationContainer
+              theme={
+                appearenceMode === "dark"
+                  ? CombinedDarkTheme
+                  : CombinedDefaultTheme
+              }
+              ref={navigationRef}
+              onReady={() => {
+                routeNameRef.current = navigationRef.getCurrentRoute()?.name;
+              }}
+              onStateChange={async () => {
+                const previousRouteName = routeNameRef.current;
+                const currentRouteName = navigationRef.getCurrentRoute()?.name;
 
-          if (previousRouteName !== currentRouteName) {
-            // Do something on route change
-          }
+                if (previousRouteName !== currentRouteName) {
+                  // Do something on route change
+                }
 
-          // Save the current route name for later comparison
-          routeNameRef.current = currentRouteName;
-        }}
-      >
-        <PaperProvider
-          theme={
-            appearenceMode === "dark" ? CombinedDarkTheme : CombinedDefaultTheme
-          }
-        >
-          <StoreProvider store={store}>
-            <PersistGate loading={null} persistor={persistor}>
-              {state.store && (
+                // Save the current route name for later comparison
+                routeNameRef.current = currentRouteName;
+              }}
+            >
+              <PaperProvider
+                theme={
+                  appearenceMode === "dark"
+                    ? CombinedDarkTheme
+                    : CombinedDefaultTheme
+                }
+              >
                 <View
                   onLayout={onLayoutRootView}
                   style={[StyleSheet.absoluteFill]}
                 >
                   <Root />
                 </View>
-              )}
-            </PersistGate>
-          </StoreProvider>
-        </PaperProvider>
-      </NavigationContainer>
+              </PaperProvider>
+            </NavigationContainer>
+          )}
+        </PersistGate>
+      </StoreProvider>
       <StatusBar style={appearenceMode === "dark" ? "light" : "dark"} />
     </SafeAreaProvider>
   );
