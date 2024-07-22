@@ -7,6 +7,7 @@ export type Translation = {
     enabled: string;
     disabled: string;
     cancel: string;
+    add: string;
   };
   screens: {
     settings: string;

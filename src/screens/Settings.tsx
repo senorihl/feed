@@ -1,12 +1,16 @@
 import React from "react";
-import { DevSettings, ScrollView, Alert, TouchableOpacity } from "react-native";
+import { DevSettings, ScrollView, TouchableOpacity } from "react-native";
 import {
-  ActivityIndicator,
-  Divider,
-  IconButton,
+  Portal,
+  Dialog,
   List,
   Menu,
   Paragraph,
+  Button,
+  TextInput,
+  HelperText,
+  useTheme,
+  Text,
 } from "react-native-paper";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
@@ -28,7 +32,11 @@ const locales = {
 };
 
 export const Settings: React.FC = () => {
-  const [isLoading, setLoading] = React.useState(false);
+  const theme = useTheme();
+  const [toRemoveFeed, setToRemoveFeed] = React.useState<string | null>(null);
+  const [addFeedVisible, setAddFeedVisible] = React.useState(false);
+  const [feedURL, setFeedURL] = React.useState<string>();
+  const [feedURLError, setFeedURLError] = React.useState(false);
   const [localeMenuVisible, setLocaleMenuVisible] = React.useState(false);
   const dispatch = useAppDispatch();
   const appearenceMode = useAppSelector(
@@ -41,25 +49,86 @@ export const Settings: React.FC = () => {
   const feeds = useAppSelector((state) => state.configuration.feeds || {});
 
   const addFeedCallback = React.useCallback(() => {
-    Alert.prompt(
-      i18n.t("settings.popin.feedUrl"),
-      i18n.t("settings.popin.feedUrlHelper"),
-      (value) => {
-        setLoading(true);
-        dispatch(addFeed(value))
-          .unwrap()
-          .catch(() => {
-            Alert.alert(i18n.t("settings.popin.feedUrlError"));
-          })
-          .finally(() => {
-            setLoading(false);
-          });
-      }
-    );
-  }, [dispatch, setLoading]);
+    setFeedURL("");
+    setAddFeedVisible(true);
+    setFeedURLError(false);
+  }, [dispatch]);
 
   return (
     <ScrollView style={{ flex: 1 }}>
+      <Portal>
+        <Dialog visible={!!toRemoveFeed}>
+          <Dialog.Content>
+            <Text variant="bodyLarge">
+              {i18n.t("settings.removeFeedConfirmation")}
+            </Text>
+            <Paragraph>{toRemoveFeed}</Paragraph>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button
+              textColor={theme.colors.error}
+              onPress={() => setToRemoveFeed(null)}
+            >
+              {i18n.t("global.cancel")}
+            </Button>
+            <Button
+              onPress={() => {
+                dispatch(removeFeed(toRemoveFeed));
+                setToRemoveFeed(null);
+              }}
+            >
+              {i18n.t("settings.removeFeedButton")}
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+        <Dialog visible={addFeedVisible}>
+          <Dialog.Content>
+            <Text variant="bodyLarge" style={{ marginBottom: 20 }}>
+              {i18n.t("settings.addFeed")}
+            </Text>
+            <TextInput
+              value={feedURL}
+              keyboardType="url"
+              label={i18n.t("settings.popin.feedUrl")}
+              error={feedURLError}
+              placeholder={i18n.t("settings.popin.feedUrl")}
+              onChangeText={(val) => setFeedURL(val)}
+            />
+            <HelperText type={feedURLError ? "error" : "info"} visible>
+              {feedURLError
+                ? i18n.t("settings.popin.feedUrlError")
+                : i18n.t("settings.popin.feedUrlHelper")}
+            </HelperText>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button
+              textColor={theme.colors.error}
+              onPress={() => {
+                setAddFeedVisible(false);
+                setFeedURL("");
+                setFeedURLError(false);
+              }}
+            >
+              {i18n.t("global.cancel")}
+            </Button>
+            <Button
+              onPress={() => {
+                dispatch(addFeed(feedURL))
+                  .unwrap()
+                  .then(() => {
+                    setAddFeedVisible(false);
+                    setFeedURLError(false);
+                  })
+                  .catch(() => {
+                    setFeedURLError(true);
+                  });
+              }}
+            >
+              {i18n.t("global.add")}
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
       <List.Section title={i18n.t("settings.preferences")}>
         <List.Item
           title={i18n.t("settings.darkMode")}
@@ -125,7 +194,11 @@ export const Settings: React.FC = () => {
               anchor={
                 <Paragraph
                   numberOfLines={1}
-                  style={{ flex: 1, alignSelf: "flex-end", textAlign: "right" }}
+                  style={{
+                    flex: 1,
+                    alignSelf: "flex-end",
+                    textAlign: "right",
+                  }}
                 >
                   {locales[locale]}
                 </Paragraph>
@@ -164,15 +237,9 @@ export const Settings: React.FC = () => {
       <List.Section title={i18n.t("settings.feeds")}>
         <List.Item
           title={i18n.t("settings.addFeed")}
-          disabled={isLoading}
           right={(props) => <List.Icon {...props} icon="plus-circle" />}
           onPress={addFeedCallback}
         />
-        {isLoading && (
-          <List.Item
-            title={(props) => <ActivityIndicator color={props.color} />}
-          />
-        )}
         {Object.entries(feeds).map(([url, { title, updated }]) => {
           if (!updated || !title || !url) {
             return <></>;
@@ -180,29 +247,10 @@ export const Settings: React.FC = () => {
           return (
             <List.Item
               key={`config-feed-${url}`}
-              disabled={isLoading}
               title={title}
               description={url}
               right={(props) => (
-                <TouchableOpacity
-                  onPress={() =>
-                    Alert.alert(
-                      i18n.t("settings.removeFeedConfirmation"),
-                      null,
-                      [
-                        {
-                          text: i18n.t("settings.removeFeedButton"),
-                          style: "destructive",
-                          onPress() {
-                            dispatch(removeFeed(url));
-                          },
-                        },
-                        { text: i18n.t("global.cancel"), style: "cancel" },
-                      ],
-                      { cancelable: true }
-                    )
-                  }
-                >
+                <TouchableOpacity onPress={() => setToRemoveFeed(url)}>
                   <List.Icon {...props} icon="trash-can" />
                 </TouchableOpacity>
               )}

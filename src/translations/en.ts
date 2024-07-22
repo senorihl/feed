@@ -11,6 +11,7 @@ export const en: Translation = {
     enabled: "Enabled",
     disabled: "Disabled",
     cancel: "Cancel",
+    add: "Add",
   },
   settings: {
     addFeed: "Add feed",

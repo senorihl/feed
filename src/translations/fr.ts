@@ -11,6 +11,7 @@ export const fr: Translation = {
     enabled: "Activé",
     disabled: "Désactivé",
     cancel: "Annuler",
+    add: "Ajouter",
   },
   settings: {
     addFeed: "Ajouter un flux",
