@@ -10,6 +10,7 @@ export const en: Translation = {
     disable: "Disable",
     enabled: "Enabled",
     disabled: "Disabled",
+    cancel: "Cancel",
   },
   settings: {
     addFeed: "Add feed",
@@ -25,6 +26,9 @@ export const en: Translation = {
       feedUrlHelper: "Please provide a valid URL.",
       feedUrlError: "Invalid URL given or format received.",
     },
+    cleanDatabase: "Clean locale database",
+    removeFeedButton: "Remove the feed",
+    removeFeedConfirmation: "Are you sure to remove the feed?",
   },
   feed: {
     lastContentOn: "Mis à jour le %{date}",

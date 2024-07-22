@@ -1,7 +1,10 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
-
 import { feedApi } from "./feed";
 import { i18n } from "../../translations";
+import {
+  upsertFeed,
+  removeFeed as removeFeedFromDatabase,
+} from "../../services/database";
 
 export type ConfigurationInterface = {
   locale?: string;
@@ -25,6 +28,11 @@ export const addFeed = createAsyncThunk(
         .initiate(url, { forceRefetch: true })(dispatch, getState, extra)
         .unwrap();
       if (feed) {
+        upsertFeed({
+          url: feed.url,
+          title: feed.title || feed.url,
+          lastFetch: new Date(feed.lastFetch),
+        });
         return [feed.url, feed.title || feed.url, feed.lastFetch] as [
           url: string,
           title: string,
@@ -59,11 +67,20 @@ const configurationSlice = createSlice({
       state,
       action: PayloadAction<[url: string, ts: string]>
     ) {
-      state.feeds[action.payload[0]] &&
-        (state.feeds[action.payload[0]].updated = action.payload[1]);
+      if (state.feeds[action.payload[0]]) {
+        state.feeds[action.payload[0]].updated = action.payload[1];
+        upsertFeed({
+          url: action.payload[0],
+          title: state.feeds[action.payload[0]].title || action.payload[0],
+          lastFetch: new Date(action.payload[1]),
+        });
+      }
     },
     removeFeed(state, action: PayloadAction<string>) {
-      typeof state.feeds[action.payload] && delete state.feeds[action.payload];
+      if (typeof state.feeds[action.payload]) {
+        delete state.feeds[action.payload];
+        removeFeedFromDatabase(action.payload);
+      }
     },
   },
   extraReducers: (builder) => {
@@ -79,6 +96,7 @@ export const {
   saveLinksMode,
   saveLocale,
   updateFeedFetchDate,
+  removeFeed,
 } = configurationSlice.actions;
 export const { name } = configurationSlice;
 export default configurationSlice.reducer;

@@ -10,6 +10,7 @@ export const fr: Translation = {
     disable: "Desactiver",
     enabled: "Activé",
     disabled: "Désactivé",
+    cancel: "Annuler",
   },
   settings: {
     addFeed: "Ajouter un flux",
@@ -26,6 +27,9 @@ export const fr: Translation = {
       feedUrlError:
         "L’adresse n’est pas valide ou le contenu n’est pas valide.",
     },
+    cleanDatabase: "Vider la base de données locale",
+    removeFeedButton: "Retirer le flux",
+    removeFeedConfirmation: "Êtes-vous sûr de vouloir retirer le flux ?",
   },
   feed: {
     lastContentOn: "Mis à jour le %{date}",

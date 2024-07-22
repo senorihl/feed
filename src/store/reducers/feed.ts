@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { parseFeed } from "htmlparser2";
 import type { FeedItemMedia } from "domutils/lib/feeds";
+import { upsertFeed, upsertItem } from "../../services/database";
 
 type Feed = {
   url: string;
@@ -44,14 +45,15 @@ export const feedApi = createApi({
       },
       transformResponse(res: string, metas, url) {
         const feed = parseFeed(res);
+        const lastFetch = new Date();
 
         if (!feed) {
           throw `Invalid feed given in <${url}>`;
         }
 
-        return {
+        const transformed = {
           url,
-          lastFetch: new Date().toJSON(),
+          lastFetch: lastFetch.toJSON(),
           title: feed?.title || url,
           description: feed?.description,
           updated: feed.updated?.toJSON() || new Date().toJSON(),
@@ -68,6 +70,27 @@ export const feedApi = createApi({
             };
           }),
         };
+
+        (async (feed: typeof transformed) => {
+          await upsertFeed({
+            url: feed.url,
+            title: feed.title,
+            lastFetch: new Date(feed.lastFetch),
+          });
+          for (let i = 0; i < feed.items.length; i++) {
+            const item = feed.items[i];
+            await upsertItem({
+              feed_url: url,
+              url: item.link,
+              title: item.title,
+              description: item.description,
+              updated: item.updated ? new Date(item.updated) : null,
+              media: item.media || null,
+            });
+          }
+        })(transformed);
+
+        return transformed;
       },
     }),
   }),

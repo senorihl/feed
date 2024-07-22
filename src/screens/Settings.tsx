@@ -1,8 +1,9 @@
 import React from "react";
-import { DevSettings, ScrollView, Alert } from "react-native";
+import { DevSettings, ScrollView, Alert, TouchableOpacity } from "react-native";
 import {
   ActivityIndicator,
   Divider,
+  IconButton,
   List,
   Menu,
   Paragraph,
@@ -10,12 +11,15 @@ import {
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
   addFeed,
+  removeFeed,
   saveAppearenceMode,
   saveLinksMode,
   saveLocale,
 } from "../store/reducers/configuration";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { i18n } from "../translations";
+import { deleteDatabaseAsync } from "expo-sqlite";
+import { DATABASE_NAME, getDatabase } from "../services/database";
 
 const locales = {
   en: "English",
@@ -142,8 +146,16 @@ export const Settings: React.FC = () => {
         />
         <List.Item
           title={i18n.t("settings.clearCache")}
-          onPress={() => {
-            AsyncStorage.clear();
+          onPress={async () => {
+            await AsyncStorage.clear();
+            DevSettings.reload();
+          }}
+        />
+        <List.Item
+          title={i18n.t("settings.cleanDatabase")}
+          onPress={async () => {
+            await (await getDatabase()).closeAsync();
+            await deleteDatabaseAsync(DATABASE_NAME);
             DevSettings.reload();
           }}
         />
@@ -171,7 +183,29 @@ export const Settings: React.FC = () => {
               disabled={isLoading}
               title={title}
               description={url}
-              right={(props) => <List.Icon {...props} icon="trash-can" />}
+              right={(props) => (
+                <TouchableOpacity
+                  onPress={() =>
+                    Alert.alert(
+                      i18n.t("settings.removeFeedConfirmation"),
+                      null,
+                      [
+                        {
+                          text: i18n.t("settings.removeFeedButton"),
+                          style: "destructive",
+                          onPress() {
+                            dispatch(removeFeed(url));
+                          },
+                        },
+                        { text: i18n.t("global.cancel"), style: "cancel" },
+                      ],
+                      { cancelable: true }
+                    )
+                  }
+                >
+                  <List.Icon {...props} icon="trash-can" />
+                </TouchableOpacity>
+              )}
             />
           );
         })}

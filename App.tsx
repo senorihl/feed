@@ -3,6 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import { PersistGate } from "redux-persist/integration/react";
 import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
+import { SQLiteProvider } from "expo-sqlite";
 import * as NavigationBar from "expo-navigation-bar";
 import { StyleSheet, View, useColorScheme, Platform } from "react-native";
 import {
@@ -21,6 +22,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider as StoreProvider } from "react-redux";
 import store, { persistor } from "./src/store";
 import { Root } from "./src/screens/Root";
+import { DATABASE_NAME, migrateDbIfNeeded } from "./src/services/database";
 
 type ReducerInitialState = {
   store: boolean;
@@ -127,45 +129,51 @@ const App: React.FC = () => {
     <SafeAreaProvider>
       <StoreProvider store={store}>
         <PersistGate loading={null} persistor={persistor}>
-          {state.store && state.font && (
-            <NavigationContainer
-              theme={
-                appearenceMode === "dark"
-                  ? CombinedDarkTheme
-                  : CombinedDefaultTheme
-              }
-              ref={navigationRef}
-              onReady={() => {
-                routeNameRef.current = navigationRef.getCurrentRoute()?.name;
-              }}
-              onStateChange={async () => {
-                const previousRouteName = routeNameRef.current;
-                const currentRouteName = navigationRef.getCurrentRoute()?.name;
-
-                if (previousRouteName !== currentRouteName) {
-                  // Do something on route change
-                }
-
-                // Save the current route name for later comparison
-                routeNameRef.current = currentRouteName;
-              }}
-            >
-              <PaperProvider
+          <SQLiteProvider
+            databaseName={DATABASE_NAME}
+            onInit={migrateDbIfNeeded}
+          >
+            {state.store && state.font && (
+              <NavigationContainer
                 theme={
                   appearenceMode === "dark"
                     ? CombinedDarkTheme
                     : CombinedDefaultTheme
                 }
+                ref={navigationRef}
+                onReady={() => {
+                  routeNameRef.current = navigationRef.getCurrentRoute()?.name;
+                }}
+                onStateChange={async () => {
+                  const previousRouteName = routeNameRef.current;
+                  const currentRouteName =
+                    navigationRef.getCurrentRoute()?.name;
+
+                  if (previousRouteName !== currentRouteName) {
+                    // Do something on route change
+                  }
+
+                  // Save the current route name for later comparison
+                  routeNameRef.current = currentRouteName;
+                }}
               >
-                <View
-                  onLayout={onLayoutRootView}
-                  style={[StyleSheet.absoluteFill]}
+                <PaperProvider
+                  theme={
+                    appearenceMode === "dark"
+                      ? CombinedDarkTheme
+                      : CombinedDefaultTheme
+                  }
                 >
-                  <Root />
-                </View>
-              </PaperProvider>
-            </NavigationContainer>
-          )}
+                  <View
+                    onLayout={onLayoutRootView}
+                    style={[StyleSheet.absoluteFill]}
+                  >
+                    <Root />
+                  </View>
+                </PaperProvider>
+              </NavigationContainer>
+            )}
+          </SQLiteProvider>
         </PersistGate>
       </StoreProvider>
       <StatusBar style={appearenceMode === "dark" ? "light" : "dark"} />

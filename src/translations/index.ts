@@ -6,6 +6,7 @@ export type Translation = {
     disable: string;
     enabled: string;
     disabled: string;
+    cancel: string;
   };
   screens: {
     settings: string;
@@ -19,12 +20,15 @@ export type Translation = {
     feeds: string;
     addFeed: string;
     clearCache: string;
+    cleanDatabase: string;
     openLinksWithinApp: string;
     popin: {
       feedUrl: string;
       feedUrlHelper: string;
       feedUrlError: string;
     };
+    removeFeedConfirmation: string;
+    removeFeedButton: string;
   };
 
   feed: {
