@@ -1,7 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { parseFeed } from "htmlparser2";
 import type { FeedItemMedia } from "domutils/lib/feeds";
-import { updateFeedFetchDate } from "./configuration";
 
 type Feed = {
   url: string;
@@ -33,7 +32,12 @@ export const feedApi = createApi({
       async onQueryStarted(arg, api) {
         try {
           const feed = await api.queryFulfilled;
-          api.dispatch(updateFeedFetchDate([arg, feed.data.lastFetch]));
+          api.dispatch(
+            (await import("./configuration")).updateFeedFetchDate([
+              arg,
+              feed.data.lastFetch,
+            ])
+          );
         } catch (e) {
           console.debug(e);
         }
