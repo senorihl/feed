@@ -33,5 +33,6 @@ export const fr: Translation = {
     refreshing: "Mise à jour",
     refresh: "Tirer vers le bas pour mettre à jour",
     updateAll: "Tout mettre à jour",
+    empty: "Rien à afficher",
   },
 };

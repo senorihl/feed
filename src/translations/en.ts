@@ -32,5 +32,6 @@ export const en: Translation = {
     refreshing: "Mise à jour",
     refresh: "Pull to refresh",
     updateAll: "Update all feeds",
+    empty: "Nothing to show",
   },
 };

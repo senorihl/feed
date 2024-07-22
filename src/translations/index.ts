@@ -33,6 +33,7 @@ export type Translation = {
     updateAll: string;
     refreshing: string;
     refresh: string;
+    empty: string;
   };
 };
 
