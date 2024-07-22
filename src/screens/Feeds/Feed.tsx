@@ -22,6 +22,7 @@ import type { CombinedThemeType } from "../../../App";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RefreshControl, FlatList, ScrollView, View } from "react-native";
 import { i18n } from "../../translations";
+import { FlashList } from "@shopify/flash-list";
 
 type FeedScreenProps = CompositeScreenProps<
   NativeStackScreenProps<FeedStackParamList, "Feed">,
@@ -38,9 +39,9 @@ export const Feed: React.FC<FeedScreenProps> = ({ route }) => {
   );
 
   return (
-    <FlatList
+    <FlashList
       data={data?.items}
-      initialNumToRender={3}
+      estimatedItemSize={350}
       refreshControl={
         <RefreshControl
           title={
@@ -169,119 +170,5 @@ export const Feed: React.FC<FeedScreenProps> = ({ route }) => {
         );
       }}
     />
-  );
-
-  return (
-    <ScrollView
-      refreshControl={
-        <RefreshControl
-          title={
-            isFetching || isLoading
-              ? i18n.t("feed.refreshing")
-              : i18n.t("feed.refresh")
-          }
-          refreshing={isFetching || isLoading}
-          onRefresh={() => {
-            refetch();
-          }}
-        />
-      }
-      contentContainerStyle={{ flex: data?.items ? void 0 : 1 }}
-    >
-      {data?.items.map((item) => (
-        <Card
-          key={`item-card-${route.params.url}-${item.link}`}
-          style={{ marginVertical: 10, marginHorizontal: 10 }}
-          onPress={() => {
-            onItemPressed(item.link);
-          }}
-        >
-          {item.media && (
-            <Card.Cover
-              source={{ uri: item.media.url }}
-              style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-            />
-          )}
-          <Chip
-            textStyle={{
-              color: color(theme.colors.onSurface).lighten(3).rgb().toString(),
-            }}
-            style={{
-              borderTopLeftRadius: item.media ? 0 : void 0,
-              borderTopRightRadius: item.media ? 0 : void 0,
-              borderBottomLeftRadius: 0,
-              borderBottomRightRadius: 0,
-              backgroundColor: color(theme.colors.surfaceDisabled)
-                .lighten(5)
-                .rgb()
-                .toString(),
-            }}
-          >
-            {Intl.DateTimeFormat(locale, {
-              dateStyle: "medium",
-              timeStyle: "short",
-              timeZone: cal[0].timeZone,
-            }).format(Date.parse(item.updated))}
-          </Chip>
-          <Card.Content style={{ marginVertical: 20 }}>
-            <Title>{item.title}</Title>
-            <Paragraph>{item.description}</Paragraph>
-          </Card.Content>
-          <Chip
-            style={{
-              borderTopLeftRadius: 0,
-              borderTopRightRadius: 0,
-              borderBottomLeftRadius: item.media ? 0 : void 0,
-              borderBottomRightRadius: item.media ? 0 : void 0,
-              backgroundColor: color(theme.colors.surfaceDisabled)
-                .lighten(5)
-                .rgb()
-                .toString(),
-            }}
-            textStyle={{
-              color: color(theme.colors.onSurface).lighten(3).rgb().toString(),
-            }}
-          >
-            {data.title}
-          </Chip>
-        </Card>
-      )) || (
-        <View
-          style={{
-            position: "absolute",
-            width: "100%",
-            height: "100%",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <ActivityIndicator color={theme.colors.onBackground} />
-        </View>
-      )}
-      <View>
-        {data?.updated && (
-          <Paragraph>
-            {i18n.t("feed.lastContentOn", {
-              date: Intl.DateTimeFormat(locale, {
-                dateStyle: "medium",
-                timeStyle: "short",
-                timeZone: cal[0].timeZone,
-              }).format(Date.parse(data.updated)),
-            })}
-          </Paragraph>
-        )}
-        {data?.lastFetch && (
-          <Paragraph>
-            {i18n.t("feed.updatedOn", {
-              date: Intl.DateTimeFormat(locale, {
-                dateStyle: "medium",
-                timeStyle: "short",
-                timeZone: cal[0].timeZone,
-              }).format(Date.parse(data.lastFetch)),
-            })}
-          </Paragraph>
-        )}
-      </View>
-    </ScrollView>
   );
 };
