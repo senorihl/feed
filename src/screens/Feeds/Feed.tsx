@@ -74,21 +74,15 @@ export const Feed: React.FC<FeedScreenProps> = ({ route }) => {
               />
             )}
             <Chip
-              textStyle={{
-                color: color(theme.colors.onSurface)
-                  .lighten(3)
-                  .rgb()
-                  .toString(),
-              }}
               style={{
                 borderTopLeftRadius: item.media ? 0 : void 0,
                 borderTopRightRadius: item.media ? 0 : void 0,
                 borderBottomLeftRadius: 0,
                 borderBottomRightRadius: 0,
-                backgroundColor: color(theme.colors.surfaceDisabled)
-                  .lighten(5)
-                  .rgb()
-                  .toString(),
+                backgroundColor: theme.colors.surfaceVariant,
+              }}
+              textStyle={{
+                color: theme.colors.onSurfaceVariant,
               }}
             >
               {Intl.DateTimeFormat(locale, {
@@ -105,18 +99,10 @@ export const Feed: React.FC<FeedScreenProps> = ({ route }) => {
               style={{
                 borderTopLeftRadius: 0,
                 borderTopRightRadius: 0,
-                borderBottomLeftRadius: item.media ? 0 : void 0,
-                borderBottomRightRadius: item.media ? 0 : void 0,
-                backgroundColor: color(theme.colors.surfaceDisabled)
-                  .lighten(5)
-                  .rgb()
-                  .toString(),
+                backgroundColor: theme.colors.surfaceVariant,
               }}
               textStyle={{
-                color: color(theme.colors.onSurface)
-                  .lighten(3)
-                  .rgb()
-                  .toString(),
+                color: theme.colors.onSurfaceVariant,
               }}
             >
               {data.title}
