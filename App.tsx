@@ -23,6 +23,7 @@ import { Provider as StoreProvider } from "react-redux";
 import store, { persistor } from "./src/store";
 import { Root } from "./src/screens/Root";
 import { DATABASE_NAME, migrateDbIfNeeded } from "./src/services/database";
+import "./src/services/background";
 
 type ReducerInitialState = {
   store: boolean;

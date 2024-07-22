@@ -23,7 +23,13 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { i18n } from "../translations";
 import { deleteDatabaseAsync } from "expo-sqlite";
+import * as TaskManager from "expo-task-manager";
 import { DATABASE_NAME, getDatabase } from "../services/database";
+import {
+  registerBackgroundFetchAsync,
+  useStatus,
+} from "../services/background";
+import { BackgroundFetchStatus } from "expo-background-fetch";
 
 const locales = {
   en: "English",
@@ -33,6 +39,7 @@ const locales = {
 
 export const Settings: React.FC = () => {
   const theme = useTheme();
+  const { status, isRegistered, checkStatusAsync } = useStatus();
   const [toRemoveFeed, setToRemoveFeed] = React.useState<string | null>(null);
   const [addFeedVisible, setAddFeedVisible] = React.useState(false);
   const [feedURL, setFeedURL] = React.useState<string>();
@@ -215,6 +222,31 @@ export const Settings: React.FC = () => {
                 />
               ))}
             </Menu>
+          )}
+        />
+        <List.Item
+          title={"Synchronisation en arrière-plan"}
+          disabled={status === BackgroundFetchStatus.Denied}
+          onPress={() => {
+            (isRegistered
+              ? TaskManager.unregisterAllTasksAsync()
+              : registerBackgroundFetchAsync()
+            ).finally(() => {
+              checkStatusAsync();
+            });
+          }}
+          right={(props) => (
+            <Paragraph
+              {...props}
+              numberOfLines={1}
+              style={{ flex: 1, alignSelf: "flex-end", textAlign: "right" }}
+            >
+              {status === BackgroundFetchStatus.Denied
+                ? "Impossible"
+                : isRegistered
+                ? i18n.t("global.enabled")
+                : i18n.t("global.disabled")}
+            </Paragraph>
           )}
         />
         <List.Item

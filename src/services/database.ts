@@ -31,7 +31,7 @@ export async function upsertFeed(feed: {
       !feed.lastFetch ? null : Math.floor(feed.lastFetch.getTime() / 1000)
     );
 
-    console.log("upsertFeed", JSON.stringify(changedRow, null, "  "));
+    console.debug("upsertFeed", changedRow);
 
     return changedRow;
   } catch (e) {
@@ -73,7 +73,7 @@ export async function upsertItem(item: {
       !item.updated ? null : Math.floor(item.updated.getTime() / 1000)
     );
 
-    console.log("upsertItem", JSON.stringify(changedRow, null, "  "));
+    console.debug("upsertItem", changedRow);
 
     return changedRow;
   } catch (e) {
