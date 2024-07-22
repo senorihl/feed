@@ -7,6 +7,7 @@ import { RootTabParamList } from "../store/hooks";
 import { i18n } from "../translations";
 import { LocalizedHeaderTitle, LocalizedTitle } from "./Titles";
 import { HeaderTitle } from "@react-navigation/elements";
+import Logo from "../components/vectors/Logo";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -29,7 +30,12 @@ export const Root: React.FC = () => {
             />
           ),
           tabBarIcon: ({ color, size }) => (
-            <Icons name="rss" color={color} size={size} />
+            <Logo
+              width={size}
+              height={size}
+              backgroundFill={"none"}
+              fill={color}
+            />
           ),
         }}
       />

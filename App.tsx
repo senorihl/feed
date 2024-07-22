@@ -16,7 +16,10 @@ import {
   Provider as PaperProvider,
   MD3DarkTheme,
   MD3LightTheme,
+  adaptNavigationTheme,
 } from "react-native-paper";
+
+import * as AppTheme from "./src/services/theme";
 import merge from "deepmerge";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider as StoreProvider } from "react-redux";
@@ -54,8 +57,16 @@ const reducer: React.Reducer<ReducerInitialState, ReducerAction> = (
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
-const CombinedDefaultTheme = merge(MD3LightTheme, NavigationLightTheme);
-const CombinedDarkTheme = merge(MD3DarkTheme, NavigationDarkTheme);
+const { LightTheme, DarkTheme } = adaptNavigationTheme({
+  reactNavigationLight: NavigationLightTheme,
+  reactNavigationDark: NavigationDarkTheme,
+});
+
+const CombinedDefaultTheme = merge(
+  merge(LightTheme, MD3LightTheme),
+  AppTheme.light
+);
+const CombinedDarkTheme = merge(merge(DarkTheme, MD3DarkTheme), AppTheme.dark);
 
 export type CombinedThemeType = typeof CombinedDefaultTheme;
 
