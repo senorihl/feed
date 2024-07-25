@@ -31,8 +31,6 @@ export async function upsertFeed(feed: {
       !feed.lastFetch ? null : Math.floor(feed.lastFetch.getTime() / 1000)
     );
 
-    console.debug("upsertFeed", changedRow);
-
     return changedRow;
   } catch (e) {
     console.error(e);
@@ -72,8 +70,6 @@ export async function upsertItem(item: {
       item.media ? JSON.stringify(item.media) : null,
       !item.updated ? null : Math.floor(item.updated.getTime() / 1000)
     );
-
-    console.debug("upsertItem", changedRow);
 
     return changedRow;
   } catch (e) {
