@@ -11,6 +11,7 @@ import {
   HelperText,
   useTheme,
   Text,
+  ActivityIndicator,
 } from "react-native-paper";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
@@ -106,12 +107,14 @@ export const Settings: React.FC = () => {
               {i18n.t("settings.addFeed")}
             </Text>
             <TextInput
+              disabled={isWorking}
               value={feedURL}
               keyboardType="url"
               label={i18n.t("settings.popin.feedUrl")}
               error={feedURLError}
               placeholder={i18n.t("settings.popin.feedUrl")}
               onChangeText={(val) => setFeedURL(val)}
+              right={isWorking ? <ActivityIndicator size={"small"} /> : void 0}
             />
             <HelperText type={feedURLError ? "error" : "info"} visible>
               {feedURLError
