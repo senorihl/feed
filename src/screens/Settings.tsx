@@ -11,10 +11,12 @@ import {
   HelperText,
   useTheme,
   Text,
+  ActivityIndicator,
 } from "react-native-paper";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
   addFeed,
+  addOPML,
   removeFeed,
   saveAppearenceMode,
   saveLinksMode,
@@ -42,6 +44,7 @@ export const Settings: React.FC = () => {
   const { status, isRegistered, checkStatusAsync } = useStatus();
   const [toRemoveFeed, setToRemoveFeed] = React.useState<string | null>(null);
   const [addFeedVisible, setAddFeedVisible] = React.useState(false);
+  const [isWorking, setWorking] = React.useState(false);
   const [feedURL, setFeedURL] = React.useState<string>();
   const [feedURLError, setFeedURLError] = React.useState(false);
   const [localeMenuVisible, setLocaleMenuVisible] = React.useState(false);
@@ -64,7 +67,12 @@ export const Settings: React.FC = () => {
   return (
     <ScrollView style={{ flex: 1 }}>
       <Portal>
-        <Dialog visible={!!toRemoveFeed}>
+        <Dialog
+          visible={!!toRemoveFeed}
+          onDismiss={() => {
+            setToRemoveFeed(null);
+          }}
+        >
           <Dialog.Content>
             <Text variant="bodyLarge">
               {i18n.t("settings.removeFeedConfirmation")}
@@ -88,18 +96,25 @@ export const Settings: React.FC = () => {
             </Button>
           </Dialog.Actions>
         </Dialog>
-        <Dialog visible={addFeedVisible}>
+        <Dialog
+          visible={addFeedVisible}
+          onDismiss={() => {
+            setAddFeedVisible(false);
+          }}
+        >
           <Dialog.Content>
             <Text variant="bodyLarge" style={{ marginBottom: 20 }}>
               {i18n.t("settings.addFeed")}
             </Text>
             <TextInput
+              disabled={isWorking}
               value={feedURL}
               keyboardType="url"
               label={i18n.t("settings.popin.feedUrl")}
               error={feedURLError}
               placeholder={i18n.t("settings.popin.feedUrl")}
               onChangeText={(val) => setFeedURL(val)}
+              right={isWorking ? <ActivityIndicator size={"small"} /> : void 0}
             />
             <HelperText type={feedURLError ? "error" : "info"} visible>
               {feedURLError
@@ -109,6 +124,7 @@ export const Settings: React.FC = () => {
           </Dialog.Content>
           <Dialog.Actions>
             <Button
+              disabled={isWorking}
               textColor={theme.colors.error}
               onPress={() => {
                 setAddFeedVisible(false);
@@ -119,15 +135,26 @@ export const Settings: React.FC = () => {
               {i18n.t("global.cancel")}
             </Button>
             <Button
+              disabled={isWorking}
               onPress={() => {
+                setWorking(true);
                 dispatch(addFeed(feedURL))
                   .unwrap()
                   .then(() => {
                     setAddFeedVisible(false);
                     setFeedURLError(false);
                   })
-                  .catch(() => {
+                  .catch(() => dispatch(addOPML(feedURL)).unwrap())
+                  .then(() => {
+                    setAddFeedVisible(false);
+                    setFeedURLError(false);
+                  })
+                  .catch((e) => {
+                    console.debug(e);
                     setFeedURLError(true);
+                  })
+                  .finally(() => {
+                    setWorking(false);
                   });
               }}
             >

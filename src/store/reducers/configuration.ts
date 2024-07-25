@@ -46,6 +46,38 @@ export const addFeed = createAsyncThunk(
   }
 );
 
+export const addOPML = createAsyncThunk(
+  "addOPML",
+  async (
+    url: string,
+    { fulfillWithValue, rejectWithValue, dispatch, getState, extra }
+  ) => {
+    try {
+      const feeds = await feedApi.endpoints.getOPML
+        .initiate(url, { forceRefetch: true })(dispatch, getState, extra)
+        .unwrap();
+
+      if (feeds) {
+        return feeds.map((feed) => {
+          upsertFeed({
+            url: feed.url,
+            title: feed.title || feed.url,
+            lastFetch: new Date(feed.lastFetch),
+          });
+          return [feed.url, feed.title || feed.url, feed.lastFetch] as [
+            url: string,
+            title: string,
+            date: string
+          ];
+        });
+      }
+    } catch (e) {
+      console.warn(e);
+      throw e;
+    }
+  }
+);
+
 const configurationSlice = createSlice({
   name: "configuration",
   initialState,
@@ -87,6 +119,12 @@ const configurationSlice = createSlice({
     builder.addCase(addFeed.fulfilled, (state, action) => {
       const [url, title, updated] = action.payload;
       state.feeds[url] = { title, updated };
+    });
+    builder.addCase(addOPML.fulfilled, (state, action) => {
+      const feeds = action.payload;
+      feeds.forEach(([url, title, updated]) => {
+        state.feeds[url] = { title, updated };
+      });
     });
   },
 });
