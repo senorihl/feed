@@ -1,6 +1,6 @@
 import { CompositeScreenProps } from "@react-navigation/native";
 import React from "react";
-import color from "color";
+import RenderHtml from "react-native-render-html";
 import {
   FeedStackParamList,
   RootTabParamList,
@@ -93,7 +93,9 @@ export const Feed: React.FC<FeedScreenProps> = ({ route }) => {
             </Chip>
             <Card.Content style={{ marginVertical: 20 }}>
               <Title>{item.title}</Title>
-              <Paragraph>{item.description}</Paragraph>
+              {item.description && item.description !== item.title && (
+                <RenderHtml source={{ html: item.description }} />
+              )}
             </Card.Content>
             <Chip
               style={{
