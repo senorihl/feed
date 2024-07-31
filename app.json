@@ -2,6 +2,7 @@
   "expo": {
     "name": "Feed",
     "slug": "feed",
+    "scheme": "feed-reader",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,16 +15,11 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "UIBackgroundModes": [
-          "fetch",
-          "remote-notification"
-        ]
+        "UIBackgroundModes": ["fetch", "remote-notification"]
       },
       "bundleIdentifier": "com.senorihl.feed"
     },
@@ -35,7 +31,8 @@
       "package": "com.senorihl.feed"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     },
     "extra": {
       "eas": {
@@ -49,7 +46,8 @@
         {
           "fonts": []
         }
-      ]
+      ],
+      "expo-router"
     ]
   }
 }

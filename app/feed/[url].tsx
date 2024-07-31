@@ -1,43 +1,24 @@
-import { CompositeScreenProps } from "@react-navigation/native";
-import React from "react";
-import RenderHtml from "react-native-render-html";
-import {
-  FeedStackParamList,
-  RootTabParamList,
-  useAppSelector,
-  useLinkOpener,
-} from "../../store/hooks";
-import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
-import { useGetFeedQuery } from "../../store/reducers/feed";
-import {
-  ActivityIndicator,
-  Card,
-  Chip,
-  Paragraph,
-  Title,
-  useTheme,
-} from "react-native-paper";
-import { useCalendars } from "expo-localization";
-import type { CombinedThemeType } from "../../../App";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RefreshControl, FlatList, ScrollView, View } from "react-native";
-import { i18n } from "../../translations";
+import { Text, ScrollView, RefreshControl, View } from "react-native";
+import { useAppSelector, useLinkOpener } from "../../src/store/hooks";
+import { useGetFeedQuery } from "../../src/store/reducers/feed";
+import { useLocalSearchParams } from "expo-router";
 import { FlashList } from "@shopify/flash-list";
+import { i18n } from "../../src/translations";
+import { Card, Chip, Paragraph, Title, useTheme } from "react-native-paper";
+import RenderHTML from "react-native-render-html";
+import { useCalendars } from "expo-localization";
+import { useWindowDimensions } from "react-native";
 
-type FeedScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<FeedStackParamList, "Feed">,
-  BottomTabScreenProps<RootTabParamList>
->;
-
-export const Feed: React.FC<FeedScreenProps> = ({ route }) => {
-  const theme = useTheme() as CombinedThemeType;
+export default function Titles() {
+  const { width } = useWindowDimensions();
+  const theme = useTheme();
   const locale = useAppSelector((state) => state.configuration.locale || "en");
   const cal = useCalendars();
   const onItemPressed = useLinkOpener();
+  const { url } = useLocalSearchParams();
   const { data, isFetching, isLoading, refetch } = useGetFeedQuery(
-    route.params.url
+    url as string
   );
-
   return (
     <FlashList
       data={data?.items}
@@ -55,7 +36,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ route }) => {
           }}
         />
       }
-      keyExtractor={(item) => `item-card-${route.params.url}-${item.link}`}
+      keyExtractor={(item) => `item-card-${url}-${item.link}`}
       renderItem={({ item, index }) => {
         return (
           <Card
@@ -94,7 +75,17 @@ export const Feed: React.FC<FeedScreenProps> = ({ route }) => {
             <Card.Content style={{ marginVertical: 20 }}>
               <Title>{item.title}</Title>
               {item.description && item.description !== item.title && (
-                <RenderHtml source={{ html: item.description }} />
+                <RenderHTML
+                  contentWidth={width}
+                  source={{ html: item.description }}
+                  renderersProps={{
+                    a: {
+                      onPress(e, href) {
+                        onItemPressed(href);
+                      },
+                    },
+                  }}
+                />
               )}
             </Card.Content>
             <Chip
@@ -159,4 +150,4 @@ export const Feed: React.FC<FeedScreenProps> = ({ route }) => {
       }}
     />
   );
-};
+}

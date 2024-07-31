@@ -13,7 +13,6 @@ import {
   Text,
   ActivityIndicator,
 } from "react-native-paper";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
   addFeed,
   addOPML,
@@ -21,17 +20,18 @@ import {
   saveAppearenceMode,
   saveLinksMode,
   saveLocale,
-} from "../store/reducers/configuration";
+} from "../src/store/reducers/configuration";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { i18n } from "../translations";
+import { i18n } from "../src/translations";
 import { deleteDatabaseAsync } from "expo-sqlite";
 import * as TaskManager from "expo-task-manager";
-import { DATABASE_NAME, getDatabase } from "../services/database";
+import { DATABASE_NAME, getDatabase } from "../src/services/database";
 import {
   registerBackgroundFetchAsync,
   useStatus,
-} from "../services/background";
+} from "../src/services/background";
 import { BackgroundFetchStatus } from "expo-background-fetch";
+import { useAppDispatch, useAppSelector } from "../src/store/hooks";
 
 const locales = {
   en: "English",
@@ -39,7 +39,7 @@ const locales = {
   es: "Español",
 };
 
-export const Settings: React.FC = () => {
+const Settings: React.FC = () => {
   const theme = useTheme();
   const { status, isRegistered, checkStatusAsync } = useStatus();
   const [toRemoveFeed, setToRemoveFeed] = React.useState<string | null>(null);
@@ -299,24 +299,25 @@ export const Settings: React.FC = () => {
           right={(props) => <List.Icon {...props} icon="plus-circle" />}
           onPress={addFeedCallback}
         />
-        {Object.entries(feeds).map(([url, { title, updated }]) => {
-          if (!updated || !title || !url) {
-            return <></>;
-          }
-          return (
-            <List.Item
-              key={`config-feed-${url}`}
-              title={title}
-              description={url}
-              right={(props) => (
-                <TouchableOpacity onPress={() => setToRemoveFeed(url)}>
-                  <List.Icon {...props} icon="trash-can" />
-                </TouchableOpacity>
-              )}
-            />
-          );
-        })}
+        {Object.entries(feeds)
+          .filter(([url, { title, updated }]) => !(!updated || !title || !url))
+          .map(([url, { title, updated }]) => {
+            return (
+              <List.Item
+                key={`config-feed-${url}`}
+                title={title}
+                description={url}
+                right={(props) => (
+                  <TouchableOpacity onPress={() => setToRemoveFeed(url)}>
+                    <List.Icon {...props} icon="trash-can" />
+                  </TouchableOpacity>
+                )}
+              />
+            );
+          })}
       </List.Section>
     </ScrollView>
   );
 };
+
+export default Settings;

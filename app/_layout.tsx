@@ -1,3 +1,4 @@
+import { router, Stack } from "expo-router";
 import React from "react";
 import { StatusBar } from "expo-status-bar";
 import { PersistGate } from "redux-persist/integration/react";
@@ -5,28 +6,24 @@ import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
 import { SQLiteProvider } from "expo-sqlite";
 import * as NavigationBar from "expo-navigation-bar";
-import { StyleSheet, View, useColorScheme, Platform } from "react-native";
+import Icon from "@expo/vector-icons/MaterialCommunityIcons";
 import {
-  DarkTheme as NavigationDarkTheme,
-  DefaultTheme as NavigationLightTheme,
-  NavigationContainer,
-  useNavigationContainerRef,
-} from "@react-navigation/native";
+  StyleSheet,
+  View,
+  useColorScheme,
+  Platform,
+  TouchableOpacity,
+} from "react-native";
 import {
   Provider as PaperProvider,
   MD3DarkTheme,
   MD3LightTheme,
-  adaptNavigationTheme,
 } from "react-native-paper";
 
-import * as AppTheme from "./src/services/theme";
-import merge from "deepmerge";
-import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider as StoreProvider } from "react-redux";
-import store, { persistor } from "./src/store";
-import { Root } from "./src/screens/Root";
-import { DATABASE_NAME, migrateDbIfNeeded } from "./src/services/database";
-import "./src/services/background";
+import store, { persistor } from "../src/store";
+import { DATABASE_NAME, migrateDbIfNeeded } from "../src/services/database";
+import "../src/services/background";
 
 type ReducerInitialState = {
   store: boolean;
@@ -57,23 +54,9 @@ const reducer: React.Reducer<ReducerInitialState, ReducerAction> = (
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
-const { LightTheme, DarkTheme } = adaptNavigationTheme({
-  reactNavigationLight: NavigationLightTheme,
-  reactNavigationDark: NavigationDarkTheme,
-});
-
-const CombinedDefaultTheme = merge(
-  merge(LightTheme, MD3LightTheme),
-  AppTheme.light
-);
-const CombinedDarkTheme = merge(merge(DarkTheme, MD3DarkTheme), AppTheme.dark);
-
-export type CombinedThemeType = typeof CombinedDefaultTheme;
-
-const App: React.FC = () => {
+export default function Layout() {
   const [loaded, error] = Font.useFonts({});
   const routeNameRef = React.useRef<string>();
-  const navigationRef = useNavigationContainerRef();
   const scheme = useColorScheme();
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const [appearenceMode, setAppearenceMode] = React.useState(scheme);
@@ -86,16 +69,16 @@ const App: React.FC = () => {
     if (Platform.OS === "android") {
       NavigationBar.setBackgroundColorAsync(
         appearenceMode === "dark"
-          ? NavigationDarkTheme.colors.card
-          : NavigationLightTheme.colors.card
+          ? MD3DarkTheme.colors.background
+          : MD3LightTheme.colors.background
       );
       NavigationBar.setButtonStyleAsync(
         appearenceMode === "dark" ? "light" : "dark"
       );
       NavigationBar.setBorderColorAsync(
         appearenceMode === "dark"
-          ? NavigationDarkTheme.colors.border
-          : NavigationLightTheme.colors.border
+          ? MD3DarkTheme.colors.background
+          : MD3LightTheme.colors.background
       );
     }
   }, [appearenceMode]);
@@ -138,7 +121,7 @@ const App: React.FC = () => {
   }, [scheme]);
 
   return (
-    <SafeAreaProvider>
+    <>
       <StoreProvider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <SQLiteProvider
@@ -146,51 +129,57 @@ const App: React.FC = () => {
             onInit={migrateDbIfNeeded}
           >
             {state.store && state.font && (
-              <NavigationContainer
-                theme={
-                  appearenceMode === "dark"
-                    ? CombinedDarkTheme
-                    : CombinedDefaultTheme
-                }
-                ref={navigationRef}
-                onReady={() => {
-                  routeNameRef.current = navigationRef.getCurrentRoute()?.name;
-                }}
-                onStateChange={async () => {
-                  const previousRouteName = routeNameRef.current;
-                  const currentRouteName =
-                    navigationRef.getCurrentRoute()?.name;
-
-                  if (previousRouteName !== currentRouteName) {
-                    // Do something on route change
-                  }
-
-                  // Save the current route name for later comparison
-                  routeNameRef.current = currentRouteName;
-                }}
+              <PaperProvider
+                theme={appearenceMode === "dark" ? MD3DarkTheme : MD3LightTheme}
               >
-                <PaperProvider
-                  theme={
-                    appearenceMode === "dark"
-                      ? CombinedDarkTheme
-                      : CombinedDefaultTheme
-                  }
+                <View
+                  onLayout={onLayoutRootView}
+                  style={[StyleSheet.absoluteFill]}
                 >
-                  <View
-                    onLayout={onLayoutRootView}
-                    style={[StyleSheet.absoluteFill]}
-                  >
-                    <Root />
-                  </View>
-                </PaperProvider>
-              </NavigationContainer>
+                  <Stack initialRouteName="index" screenOptions={{}}>
+                    <Stack.Screen
+                      name="index"
+                      options={{
+                        title: "Feeds",
+                        headerRight(props) {
+                          return (
+                            <TouchableOpacity
+                              onPress={() => router.push("settings")}
+                            >
+                              <Icon
+                                size={20}
+                                name="cog"
+                                color={props.tintColor}
+                              />
+                            </TouchableOpacity>
+                          );
+                        },
+                      }}
+                    />
+                    <Stack.Screen
+                      name="feed/[url]"
+                      options={({
+                        route: {
+                          params: { name },
+                        },
+                      }) => {
+                        return { title: name };
+                      }}
+                    />
+                    <Stack.Screen
+                      name="settings"
+                      options={{
+                        title: "Settings",
+                      }}
+                    />
+                  </Stack>
+                </View>
+              </PaperProvider>
             )}
           </SQLiteProvider>
         </PersistGate>
       </StoreProvider>
       <StatusBar style={appearenceMode === "dark" ? "light" : "dark"} />
-    </SafeAreaProvider>
+    </>
   );
-};
-
-export default App;
+}
