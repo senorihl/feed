@@ -1,7 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { parseFeed, Parser } from "htmlparser2";
 import type { FeedItemMedia } from "domutils/lib/feeds";
-import { upsertFeed, upsertItem } from "../../services/database";
 
 type Feed = {
   url: string;
@@ -49,25 +48,6 @@ const resToFeed = (res: string, metas, url: string) => {
       };
     }),
   };
-
-  (async (feed: typeof transformed) => {
-    await upsertFeed({
-      url: feed.url,
-      title: feed.title,
-      lastFetch: new Date(feed.lastFetch),
-    });
-    for (let i = 0; i < feed.items.length; i++) {
-      const item = feed.items[i];
-      await upsertItem({
-        feed_url: url,
-        url: item.link,
-        title: item.title,
-        description: item.description,
-        updated: item.updated ? new Date(item.updated) : null,
-        media: item.media || null,
-      });
-    }
-  })(transformed);
 
   return transformed;
 };

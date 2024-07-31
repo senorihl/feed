@@ -23,9 +23,7 @@ import {
 } from "../src/store/reducers/configuration";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { i18n } from "../src/translations";
-import { deleteDatabaseAsync } from "expo-sqlite";
 import * as TaskManager from "expo-task-manager";
-import { DATABASE_NAME, getDatabase } from "../src/services/database";
 import {
   registerBackgroundFetchAsync,
   useStatus,
@@ -280,14 +278,6 @@ const Settings: React.FC = () => {
           title={i18n.t("settings.clearCache")}
           onPress={async () => {
             await AsyncStorage.clear();
-            DevSettings.reload();
-          }}
-        />
-        <List.Item
-          title={i18n.t("settings.cleanDatabase")}
-          onPress={async () => {
-            await (await getDatabase()).closeAsync();
-            await deleteDatabaseAsync(DATABASE_NAME);
             DevSettings.reload();
           }}
         />

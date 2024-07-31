@@ -4,7 +4,6 @@ import { StatusBar } from "expo-status-bar";
 import { PersistGate } from "redux-persist/integration/react";
 import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
-import { SQLiteProvider } from "expo-sqlite";
 import * as NavigationBar from "expo-navigation-bar";
 import Icon from "@expo/vector-icons/MaterialCommunityIcons";
 import {
@@ -22,7 +21,6 @@ import {
 
 import { Provider as StoreProvider } from "react-redux";
 import store, { persistor } from "../src/store";
-import { DATABASE_NAME, migrateDbIfNeeded } from "../src/services/database";
 import "../src/services/background";
 
 type ReducerInitialState = {
@@ -124,59 +122,54 @@ export default function Layout() {
     <>
       <StoreProvider store={store}>
         <PersistGate loading={null} persistor={persistor}>
-          <SQLiteProvider
-            databaseName={DATABASE_NAME}
-            onInit={migrateDbIfNeeded}
-          >
-            {state.store && state.font && (
-              <PaperProvider
-                theme={appearenceMode === "dark" ? MD3DarkTheme : MD3LightTheme}
+          {state.store && state.font && (
+            <PaperProvider
+              theme={appearenceMode === "dark" ? MD3DarkTheme : MD3LightTheme}
+            >
+              <View
+                onLayout={onLayoutRootView}
+                style={[StyleSheet.absoluteFill]}
               >
-                <View
-                  onLayout={onLayoutRootView}
-                  style={[StyleSheet.absoluteFill]}
-                >
-                  <Stack initialRouteName="index" screenOptions={{}}>
-                    <Stack.Screen
-                      name="index"
-                      options={{
-                        title: "Feeds",
-                        headerRight(props) {
-                          return (
-                            <TouchableOpacity
-                              onPress={() => router.push("settings")}
-                            >
-                              <Icon
-                                size={20}
-                                name="cog"
-                                color={props.tintColor}
-                              />
-                            </TouchableOpacity>
-                          );
-                        },
-                      }}
-                    />
-                    <Stack.Screen
-                      name="feed/[url]"
-                      options={({
-                        route: {
-                          params: { name },
-                        },
-                      }) => {
-                        return { title: name };
-                      }}
-                    />
-                    <Stack.Screen
-                      name="settings"
-                      options={{
-                        title: "Settings",
-                      }}
-                    />
-                  </Stack>
-                </View>
-              </PaperProvider>
-            )}
-          </SQLiteProvider>
+                <Stack initialRouteName="index" screenOptions={{}}>
+                  <Stack.Screen
+                    name="index"
+                    options={{
+                      title: "Feeds",
+                      headerRight(props) {
+                        return (
+                          <TouchableOpacity
+                            onPress={() => router.push("settings")}
+                          >
+                            <Icon
+                              size={20}
+                              name="cog"
+                              color={props.tintColor}
+                            />
+                          </TouchableOpacity>
+                        );
+                      },
+                    }}
+                  />
+                  <Stack.Screen
+                    name="feed/[url]"
+                    options={({
+                      route: {
+                        params: { name },
+                      },
+                    }) => {
+                      return { title: name };
+                    }}
+                  />
+                  <Stack.Screen
+                    name="settings"
+                    options={{
+                      title: "Settings",
+                    }}
+                  />
+                </Stack>
+              </View>
+            </PaperProvider>
+          )}
         </PersistGate>
       </StoreProvider>
       <StatusBar style={appearenceMode === "dark" ? "light" : "dark"} />
