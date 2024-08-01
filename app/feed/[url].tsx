@@ -1,4 +1,4 @@
-import { Text, ScrollView, RefreshControl, View } from "react-native";
+import { RefreshControl, View } from "react-native";
 import { useAppSelector, useLinkOpener } from "../../src/store/hooks";
 import { useGetFeedQuery } from "../../src/store/reducers/feed";
 import { useLocalSearchParams } from "expo-router";

@@ -1,5 +1,6 @@
 node_modules/
 .expo/
+.idea/
 android/
 ios/
 dist/
@@ -10,7 +11,9 @@ npm-debug.*
 *.key
 *.mobileprovision
 *.orig.*
+.env*.local
 web-build/
+google-services.json
 
 # macOS
 .DS_Store

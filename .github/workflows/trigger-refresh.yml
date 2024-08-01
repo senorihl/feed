@@ -1,13 +1,14 @@
-name: preview
-on: pull_request
+name: push-notification
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
 
 jobs:
-  update:
-    name: EAS Update
+  execute:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
+
     steps:
       - name: ✅ Check for EXPO_TOKEN
         run: |
@@ -32,6 +33,8 @@ jobs:
       - name: 🛠 Setup google-services.json
         run: |-
           gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GOOGLE_SERVICES_GPG_KEY }}" --output google-services.json google-services.json.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.GOOGLE_SERVICES_GPG_KEY }}
 
       - name: 🏗 Setup Node
         uses: actions/setup-node@v4
@@ -39,16 +42,11 @@ jobs:
           node-version: 18.x
           cache: yarn
 
-      - name: 🏗 Setup EAS
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
       - name: 📦 Install dependencies
         run: yarn install
 
-      - name: 🚀 Create preview
-        uses: expo/expo-github-action/preview@v8
-        with:
-          command: eas update --auto --branch ${{ github.event.pull_request.head.ref }}
+      - name: 📡 Send push
+        run: yarn --non-interactive -s node sendPushToEveryOne.js
+        env:
+          EXPO_ACCESS_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PUBLIC_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}

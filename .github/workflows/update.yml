@@ -17,12 +17,26 @@ jobs:
       - name: ✅ Check for EXPO_TOKEN
         run: |
           if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
-            echo "You must provide an EXPO_TOKEN secret linked to this project's Expo account in this repo's secrets. Learn more: https://docs.expo.dev/eas-update/github-actions"
+            exit 1
+          fi
+
+      - name: ✅ Check for FIREBASE_API_KEY
+        run: |
+          if [ -z "${{ secrets.FIREBASE_API_KEY }}" ]; then
             exit 1
           fi
 
       - name: 🏗 Setup repository
         uses: actions/checkout@v4
+
+      - name: 🛠 Setup Environment
+        id: env
+        run: |-
+          echo "EXPO_PUBLIC_FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}" >> .env.local
+
+      - name: 🛠 Setup google-services.json
+        run: |-
+          gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GOOGLE_SERVICES_GPG_KEY }}" --output google-services.json google-services.json.gpg
 
       - name: 🏗 Setup Node
         uses: actions/setup-node@v4
@@ -54,13 +68,22 @@ jobs:
     runs-on: ${{ matrix.platform == 'android' && 'ubuntu-latest' || 'macos-latest' }}
 
     steps:
+
+      - name: 🏗 Setup repository
+        uses: actions/checkout@v4
+
       - name: 🛠 Setup Environment
         id: env
         run: |-
           echo "EAS_LOCAL_BUILD_ARTIFACTS_DIR=${{ runner.temp }}/eas-output" >> $GITHUB_ENV
+          echo "EXPO_PUBLIC_FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}" >> .env.local
 
-      - name: 🏗 Setup repository
-        uses: actions/checkout@v4
+      - name: 🛠 Setup google-services.json
+        run: |-
+          gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GOOGLE_SERVICES_GPG_KEY }}" --output google-services.json google-services.json.gpg
+          echo "GOOGLE_SERVICES_FILE=$(pwd)/google-services.json" >> $GITHUB_ENV
+          file="$(pwd)/google-services.json"
+          sed -i -e "s%_GOOGLE_SERVICES_FILE_%$file%g" eas.json
 
       - name: 🏗 Setup Node
         uses: actions/setup-node@v4

@@ -1,6 +1,9 @@
-{
+module.exports = {
   "expo": {
     "name": "Feed",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
     "slug": "feed",
     "scheme": "feed-reader",
     "version": "1.0.0",
@@ -13,13 +16,14 @@
       "backgroundColor": "#F7F5FB"
     },
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/a120e0dd-5a5c-48d4-867e-5c62bc8f9eb8"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "UIBackgroundModes": ["fetch", "remote-notification"]
+        "UIBackgroundModes": ["fetch", "remote-notification", "processing"]
       },
       "bundleIdentifier": "com.senorihl.feed"
     },
@@ -28,7 +32,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F7F5FB"
       },
-      "package": "com.senorihl.feed"
+      "package": "com.senorihl.feed",
+      "googleServicesFile": process.env.GOOGLE_SERVICES_FILE,
     },
     "web": {
       "favicon": "./assets/favicon.png",

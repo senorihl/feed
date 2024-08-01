@@ -1,31 +1,47 @@
 import React from "react";
 import * as BackgroundFetch from "expo-background-fetch";
 import * as TaskManager from "expo-task-manager";
+import * as Notifications from "expo-notifications";
 import store from "../store";
 import { addFeed } from "../store/reducers/configuration";
+
+export const NOTIFICATION_FETCH_TASK = "refresh-feeds-on-notification";
+
+export const onNotification = (data: any) => {
+  console.log("onNotification", data);
+  const { refresh = null } = data;
+
+  if (refresh === true) {
+    const urls = Object.keys(store.getState().configuration.feeds || {});
+
+    (async (urls) => {
+      for (let url of urls) {
+        try {
+          await store.dispatch(addFeed(url)).unwrap();
+          console.log(url, "refreshed");
+        } catch (e) {
+          console.log(url, "error", e);
+        }
+      }
+    })(urls);
+  }
+};
+
+TaskManager.defineTask(
+  NOTIFICATION_FETCH_TASK,
+  ({ data, error, executionInfo }) => {
+    onNotification(data);
+  }
+);
 
 export const BACKGROUND_FETCH_TASK = "refresh-feeds";
 
 // 1. Define the task by providing a name and the function that should be executed
 // Note: This needs to be called in the global scope (e.g outside of your React components)
-TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
-  const { configuration } = store.getState();
-  const feeds = configuration.feeds || {};
+TaskManager.defineTask(BACKGROUND_FETCH_TASK, () => {
+  onNotification({ refresh: true });
 
-  Promise.allSettled(
-    Object.keys(feeds).map((url) => store.dispatch(addFeed(url)).unwrap())
-  ).then((values) => {
-    console.log(
-      `Background fetch, triggered at ${new Date(
-        now
-      ).toISOString()}, ended: ${new Date().toISOString()}`,
-      values
-    );
-  });
-
-  const now = Date.now();
-
-  console.log(`Background fetch triggered: ${new Date(now).toISOString()}`);
+  console.log(`Background fetch triggered: ${new Date().toISOString()}`);
 
   // Be sure to return the successful result type!
   return BackgroundFetch.BackgroundFetchResult.NewData;

@@ -13,10 +13,8 @@ module.exports = (() => {
   config.resolver = {
     ...resolver,
     assetExts: resolver.assetExts.filter((ext) => ext !== "svg"),
-    sourceExts: [...resolver.sourceExts, "svg"],
+    sourceExts: [...resolver.sourceExts, "svg", 'cjs'],
   };
-
-  config.resolver.assetExts.push("cjs");
 
   return config;
 })();

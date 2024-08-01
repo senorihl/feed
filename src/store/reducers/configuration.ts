@@ -1,8 +1,12 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
+import * as Crypto from 'expo-crypto';
 import { feedApi } from "./feed";
 import { i18n } from "../../translations";
+import {doc, setDoc, Timestamp} from "firebase/firestore/lite";
 
 export type ConfigurationInterface = {
+  installationId: string;
+  pushToken?: string;
   locale?: string;
   appearenceMode?: "light" | "dark";
   openLinksMode?: "out" | "in";
@@ -11,6 +15,7 @@ export type ConfigurationInterface = {
 
 const initialState: ConfigurationInterface = {
   feeds: {},
+  installationId: Crypto.randomUUID()
 };
 
 export const addFeed = createAsyncThunk(
@@ -68,6 +73,17 @@ const configurationSlice = createSlice({
   name: "configuration",
   initialState,
   reducers: {
+    saveInstallationId(state, action: PayloadAction) {
+      state.installationId = state.installationId || Crypto.randomUUID();
+    },
+    savePushToken(state, action: PayloadAction<{token: string, collection: Parameters<typeof doc>[0]}>) {
+      state.installationId = state.installationId || Crypto.randomUUID();
+      state.pushToken = action.payload.token;
+      setDoc(doc(action.payload.collection, state.installationId), {
+        token: action.payload.token,
+        updatedAt: Timestamp.now(),
+      });
+    },
     saveAppearenceMode(
       state,
       action: PayloadAction<undefined | "light" | "dark">
@@ -110,6 +126,8 @@ const configurationSlice = createSlice({
 });
 
 export const {
+  savePushToken,
+  saveInstallationId,
   saveAppearenceMode,
   saveLinksMode,
   saveLocale,
