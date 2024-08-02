@@ -8,7 +8,7 @@ module.exports = withAdId(
   {
     name: "Feed",
     runtimeVersion: {
-      policy: "fingerprint",
+      policy: "appVersion",
     },
     slug: "feed",
     scheme: "feed-reader",
