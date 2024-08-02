@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Button,
   List as PaperList,
+  Text,
 } from "react-native-paper";
 import { useLazyGetFeedQuery } from "../src/store/reducers/feed";
 import React from "react";
@@ -42,7 +43,7 @@ export default function Titles() {
 
   return (
     <ScrollView>
-      {Object.entries(feeds).map(([url, { title, updated }]) => {
+      {Object.entries(feeds).map(([url, { title, updated, lastUpdated }]) => {
         if (!updated || !title || !url) {
           return <></>;
         }
@@ -50,17 +51,40 @@ export default function Titles() {
           <PaperList.Item
             key={`config-feed-${url}`}
             title={title}
-            description={
-              updated
-                ? i18n.t("feed.updatedOn", {
+            description={(props) => {
+              let descriptionNumberOfLines = 1;
+              let description = i18n.t("feed.updatedOn", {
+                date: Intl.DateTimeFormat(locale, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                  timeZone: cal[0].timeZone,
+                }).format(Date.parse(updated)),
+              });
+
+              if (typeof lastUpdated !== "undefined") {
+                descriptionNumberOfLines++;
+                description +=
+                  "\n" +
+                  i18n.t("feed.lastContentOn", {
                     date: Intl.DateTimeFormat(locale, {
                       dateStyle: "medium",
                       timeStyle: "short",
                       timeZone: cal[0].timeZone,
-                    }).format(Date.parse(updated)),
-                  })
-                : void 0
-            }
+                    }).format(Date.parse(lastUpdated)),
+                  });
+              }
+
+              return (
+                <Text
+                  selectable={props.selectable}
+                  numberOfLines={descriptionNumberOfLines}
+                  ellipsizeMode={props.ellipsizeMode}
+                  style={{ color: props.color, fontSize: props.fontSize }}
+                >
+                  {description}
+                </Text>
+              );
+            }}
             disabled={refreshList[url] && refreshList[url] === true}
             right={(props) =>
               refreshList[url] && refreshList[url] === true ? (

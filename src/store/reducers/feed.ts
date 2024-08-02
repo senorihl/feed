@@ -119,6 +119,7 @@ export const feedApi = createApi({
             (await import("./configuration")).updateFeedFetchDate([
               arg,
               feed.data.lastFetch,
+              feed.data.items.at(0)?.updated,
             ])
           );
         } catch (e) {

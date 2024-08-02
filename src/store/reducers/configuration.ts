@@ -11,7 +11,14 @@ export type ConfigurationInterface = {
   locale?: string;
   appearenceMode?: "light" | "dark";
   openLinksMode?: "out" | "in";
-  feeds?: { [url: string]: { title: string; updated: string; icon?: string } };
+  feeds?: {
+    [url: string]: {
+      title: string;
+      updated: string;
+      lastUpdated?: string;
+      icon?: string;
+    };
+  };
 };
 
 const initialState: ConfigurationInterface = {
@@ -30,10 +37,16 @@ export const addFeed = createAsyncThunk(
         .initiate(url, { forceRefetch: true })(dispatch, getState, extra)
         .unwrap();
       if (feed) {
-        return [feed.url, feed.title || feed.url, feed.lastFetch] as [
+        return [
+          feed.url,
+          feed.title || feed.url,
+          feed.lastFetch,
+          feed.items.at(0)?.updated,
+        ] as [
           url: string,
           title: string,
-          date: string
+          date: string,
+          lastUpdated: string | undefined
         ];
       }
     } catch (e) {
@@ -56,10 +69,16 @@ export const addOPML = createAsyncThunk(
 
       if (feeds) {
         return feeds.map((feed) => {
-          return [feed.url, feed.title || feed.url, feed.lastFetch] as [
+          return [
+            feed.url,
+            feed.title || feed.url,
+            feed.lastFetch,
+            feed.items.at(0)?.updated,
+          ] as [
             url: string,
             title: string,
-            date: string
+            date: string,
+            lastUpdated: string | undefined
           ];
         });
       }
@@ -104,10 +123,13 @@ const configurationSlice = createSlice({
     },
     updateFeedFetchDate(
       state,
-      action: PayloadAction<[url: string, ts: string]>
+      action: PayloadAction<
+        [url: string, ts: string, lastUpdated: string | undefined]
+      >
     ) {
       if (state.feeds[action.payload[0]]) {
         state.feeds[action.payload[0]].updated = action.payload[1];
+        state.feeds[action.payload[0]].lastUpdated = action.payload[2];
       }
     },
     removeFeed(state, action: PayloadAction<string>) {
@@ -118,13 +140,13 @@ const configurationSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(addFeed.fulfilled, (state, action) => {
-      const [url, title, updated] = action.payload;
-      state.feeds[url] = { title, updated };
+      const [url, title, updated, lastUpdated] = action.payload;
+      state.feeds[url] = { title, updated, lastUpdated };
     });
     builder.addCase(addOPML.fulfilled, (state, action) => {
       const feeds = action.payload;
-      feeds.forEach(([url, title, updated]) => {
-        state.feeds[url] = { title, updated };
+      feeds.forEach(([url, title, updated, lastUpdated]) => {
+        state.feeds[url] = { title, updated, lastUpdated };
       });
     });
   },

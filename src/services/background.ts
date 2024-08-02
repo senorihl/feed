@@ -1,7 +1,7 @@
 import React from "react";
 import * as BackgroundFetch from "expo-background-fetch";
 import * as TaskManager from "expo-task-manager";
-import * as Notifications from "expo-notifications";
+import firebase from "@react-native-firebase/app";
 import store from "../store";
 import { addFeed } from "../store/reducers/configuration";
 
@@ -12,6 +12,7 @@ export const onNotification = (data: any) => {
   const { refresh = null } = data;
 
   if (refresh === true) {
+    firebase.analytics().logEvent("refresh_triggered");
     const urls = Object.keys(store.getState().configuration.feeds || {});
 
     (async (urls) => {
