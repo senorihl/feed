@@ -8,8 +8,10 @@ import { Card, Chip, Paragraph, Title, useTheme } from "react-native-paper";
 import RenderHTML from "react-native-render-html";
 import { useCalendars } from "expo-localization";
 import { useWindowDimensions } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Titles() {
+  const { bottom } = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const theme = useTheme();
   const locale = useAppSelector((state) => state.configuration.locale || "en");
@@ -21,6 +23,7 @@ export default function Titles() {
   );
   return (
     <FlashList
+      contentContainerStyle={{ paddingBottom: bottom }}
       data={data?.items}
       estimatedItemSize={350}
       refreshControl={

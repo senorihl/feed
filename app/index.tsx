@@ -12,8 +12,10 @@ import React from "react";
 import { useCalendars } from "expo-localization";
 import { router } from "expo-router";
 import { i18n } from "../src/translations";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Titles() {
+  const { bottom } = useSafeAreaInsets();
   const [trigger] = useLazyGetFeedQuery();
   const [refreshList, dispatchRefresh] = React.useReducer(
     (
@@ -42,7 +44,7 @@ export default function Titles() {
   }, [feeds]);
 
   return (
-    <ScrollView>
+    <ScrollView contentContainerStyle={{ paddingBottom: bottom }}>
       {Object.entries(feeds).map(([url, { title, updated, lastUpdated }]) => {
         if (!updated || !title || !url) {
           return <></>;
