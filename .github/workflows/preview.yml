@@ -32,6 +32,7 @@ jobs:
       - name: 🛠 Setup google-services.json
         run: |-
           gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GOOGLE_SERVICES_GPG_KEY }}" --output google-services.json google-services.json.gpg
+          gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GOOGLE_SERVICES_GPG_KEY }}" --output GoogleService-Info.plist GoogleService-Info.plist.gpg
 
       - name: 🏗 Setup Node
         uses: actions/setup-node@v4

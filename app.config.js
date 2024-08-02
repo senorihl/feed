@@ -1,3 +1,6 @@
+const googlePlist = process.env.GOOGLE_SERVICES_PLIST_FILE || './GoogleService-Info.plist';
+const googleJson = process.env.GOOGLE_SERVICES_FILE || './google-services.json';
+
 module.exports = {
   "expo": {
     "name": "Feed",
@@ -25,7 +28,8 @@ module.exports = {
       "infoPlist": {
         "UIBackgroundModes": ["fetch", "remote-notification", "processing"]
       },
-      "bundleIdentifier": "com.senorihl.feed"
+      "bundleIdentifier": "com.senorihl.feed",
+      "googleServicesFile": googlePlist,
     },
     "android": {
       "adaptiveIcon": {
@@ -33,7 +37,7 @@ module.exports = {
         "backgroundColor": "#F7F5FB"
       },
       "package": "com.senorihl.feed",
-      "googleServicesFile": process.env.GOOGLE_SERVICES_FILE,
+      "googleServicesFile": googleJson,
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -45,6 +49,14 @@ module.exports = {
       }
     },
     "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
       "expo-localization",
       [
         "expo-font",
@@ -52,7 +64,9 @@ module.exports = {
           "fonts": []
         }
       ],
-      "expo-router"
+      "expo-router",
+      "@react-native-firebase/app",
+      "@react-native-firebase/crashlytics",
     ]
   }
 }

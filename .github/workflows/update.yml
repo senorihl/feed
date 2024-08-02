@@ -37,6 +37,7 @@ jobs:
       - name: 🛠 Setup google-services.json
         run: |-
           gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GOOGLE_SERVICES_GPG_KEY }}" --output google-services.json google-services.json.gpg
+          gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GOOGLE_SERVICES_GPG_KEY }}" --output GoogleService-Info.plist GoogleService-Info.plist.gpg
 
       - name: 🏗 Setup Node
         uses: actions/setup-node@v4
@@ -68,7 +69,6 @@ jobs:
     runs-on: ${{ matrix.platform == 'android' && 'ubuntu-latest' || 'macos-latest' }}
 
     steps:
-
       - name: 🏗 Setup repository
         uses: actions/checkout@v4
 
@@ -81,9 +81,13 @@ jobs:
       - name: 🛠 Setup google-services.json
         run: |-
           gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GOOGLE_SERVICES_GPG_KEY }}" --output google-services.json google-services.json.gpg
+          gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GOOGLE_SERVICES_GPG_KEY }}" --output GoogleService-Info.plist GoogleService-Info.plist.gpg
           echo "GOOGLE_SERVICES_FILE=$(pwd)/google-services.json" >> $GITHUB_ENV
-          file="$(pwd)/google-services.json"
-          sed -i -e "s%_GOOGLE_SERVICES_FILE_%$file%g" eas.json
+          jsonFile="$(pwd)/google-services.json"
+          sed -i -e "s%_GOOGLE_SERVICES_FILE_%$jsonFile%g" eas.json
+          echo "GOOGLE_SERVICES_PLIST_FILE=$(pwd)/GoogleService-Info.plist" >> $GITHUB_ENV
+          plistFile="$(pwd)/GoogleService-Info.plist"
+          sed -i -e "s%_GOOGLE_SERVICES_PLIST_FILE_%$plistFile%g" eas.json
 
       - name: 🏗 Setup Node
         uses: actions/setup-node@v4

@@ -1,13 +1,9 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import * as Crypto from "expo-crypto";
+import firebase from "@react-native-firebase/app";
 import { feedApi } from "./feed";
 import { i18n } from "../../translations";
-import {
-  doc,
-  type CollectionReference,
-  setDoc,
-  Timestamp,
-} from "firebase/firestore/lite";
+import firestore from "@react-native-firebase/firestore";
 
 export type ConfigurationInterface = {
   installationId: string;
@@ -81,16 +77,17 @@ const configurationSlice = createSlice({
     saveInstallationId(state, action: PayloadAction) {
       state.installationId = state.installationId || Crypto.randomUUID();
     },
-    savePushToken(
-      state,
-      action: PayloadAction<{ token: string; collection: CollectionReference }>
-    ) {
+    savePushToken(state, action: PayloadAction<{ token: string }>) {
       state.installationId = state.installationId || Crypto.randomUUID();
       state.pushToken = action.payload.token;
-      setDoc(doc(action.payload.collection, state.installationId), {
-        token: action.payload.token,
-        updatedAt: Timestamp.now(),
-      });
+      firebase
+        .firestore()
+        .collection("push_tokens")
+        .doc(state.installationId)
+        .set({
+          token: action.payload.token,
+          updatedAt: firestore.FieldValue.serverTimestamp(),
+        });
     },
     saveAppearenceMode(
       state,

@@ -1,4 +1,4 @@
-import { router, Stack } from "expo-router";
+import { router, Stack, useGlobalSearchParams, usePathname } from "expo-router";
 import React from "react";
 import { StatusBar } from "expo-status-bar";
 import { PersistGate } from "redux-persist/integration/react";
@@ -21,36 +21,18 @@ import {
   MD3DarkTheme,
   MD3LightTheme,
 } from "react-native-paper";
-
 import { Provider as StoreProvider } from "react-redux";
 import store, { persistor } from "../src/store";
 import "../src/services/background";
-import { initializeApp } from "firebase/app";
-import {
-  getFirestore,
-  collection,
-  doc,
-  setDoc,
-  Timestamp,
-} from "firebase/firestore/lite";
+import firebase from "@react-native-firebase/app";
+import "@react-native-firebase/analytics";
+import "@react-native-firebase/crashlytics";
+import "@react-native-firebase/firestore";
 import {
   NOTIFICATION_FETCH_TASK,
   onNotification,
 } from "../src/services/background";
-import {saveInstallationId, savePushToken} from "../src/store/reducers/configuration";
-
-const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-  authDomain: "feed-556ee.firebaseapp.com",
-  projectId: "feed-556ee",
-  storageBucket: "feed-556ee.appspot.com",
-  messagingSenderId: "823154327432",
-  appId: "1:823154327432:web:59a35ac6c25560d8a1c43d"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const pushTokensCollection = collection(db, "push_tokens");
+import { savePushToken } from "../src/store/reducers/configuration";
 
 type ReducerInitialState = {
   store: boolean;
@@ -98,15 +80,26 @@ Notifications.setNotificationHandler({
 export default function Layout() {
   const [loaded, error] = Font.useFonts({});
   const scheme = useColorScheme();
+  const pathname = usePathname();
+  const params = useGlobalSearchParams();
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const [appearenceMode, setAppearenceMode] = React.useState(scheme);
 
+  React.useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_class: pathname,
+      screen_name: pathname,
+      ...params,
+    });
+  }, [pathname, params]);
+
   const onLayoutRootView = React.useCallback(async () => {
     await SplashScreen.hideAsync();
+    firebase.analytics().logAppOpen();
     const token = await registerForPushNotificationsAsync();
 
     if (token) {
-      store.dispatch(savePushToken({token, collection: pushTokensCollection}));
+      store.dispatch(savePushToken({ token }));
     }
   }, []);
 

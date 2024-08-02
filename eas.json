@@ -11,7 +11,14 @@
       "android": {
         "buildType": "apk",
         "env": {
-          "GOOGLE_SERVICES_FILE": "_GOOGLE_SERVICES_FILE_"
+          "GOOGLE_SERVICES_FILE": "_GOOGLE_SERVICES_FILE_",
+          "GOOGLE_SERVICES_PLIST_FILE": "_GOOGLE_SERVICES_PLIST_FILE_"
+        }
+      },
+      "ios": {
+        "env": {
+          "GOOGLE_SERVICES_FILE": "_GOOGLE_SERVICES_FILE_",
+          "GOOGLE_SERVICES_PLIST_FILE": "_GOOGLE_SERVICES_PLIST_FILE_"
         }
       }
     },
