@@ -101,10 +101,10 @@ export default function Layout() {
   const onLayoutRootView = React.useCallback(async () => {
     await SplashScreen.hideAsync();
     firebase.analytics().logAppOpen();
-    const token = await registerForPushNotificationsAsync();
+    const {token, nativeToken} = await registerForPushNotificationsAsync();
 
-    if (token) {
-      store.dispatch(savePushToken({ token }));
+    if (token || nativeToken) {
+      store.dispatch(savePushToken({ token, nativeToken }));
     }
   }, []);
 
@@ -223,7 +223,8 @@ export default function Layout() {
 }
 
 async function registerForPushNotificationsAsync() {
-  let token;
+  let token = null;
+  let nativeToken = null;
 
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("default", {
@@ -263,9 +264,23 @@ async function registerForPushNotificationsAsync() {
       ).data;
       console.log(token);
     } catch (e) {
-      token = `${e}`;
+      token = null;
+    }
+    try {
+      const projectId =
+        Constants?.expoConfig?.extra?.eas?.projectId ??
+        Constants?.easConfig?.projectId;
+      if (!projectId) {
+        throw new Error("Project ID not found");
+      }
+      nativeToken = (
+        await Notifications.getDevicePushTokenAsync()
+      ).data;
+      console.log(nativeToken);
+    } catch (e) {
+      token = nativeToken;
     }
   }
 
-  return token;
+  return {token, nativeToken};
 }

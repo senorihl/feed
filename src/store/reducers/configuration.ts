@@ -96,7 +96,7 @@ const configurationSlice = createSlice({
     saveInstallationId(state, action: PayloadAction) {
       state.installationId = state.installationId || Crypto.randomUUID();
     },
-    savePushToken(state, action: PayloadAction<{ token: string }>) {
+    savePushToken(state, action: PayloadAction<{ token: string|null, nativeToken: string|null }>) {
       state.installationId = state.installationId || Crypto.randomUUID();
       state.pushToken = action.payload.token;
       firebase
@@ -105,6 +105,7 @@ const configurationSlice = createSlice({
         .doc(state.installationId)
         .set({
           token: action.payload.token,
+          nativeToken: action.payload.nativeToken,
           updatedAt: firestore.FieldValue.serverTimestamp(),
         });
     },
