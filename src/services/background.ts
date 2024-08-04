@@ -8,7 +8,7 @@ import { addFeed } from "../store/reducers/configuration";
 export const NOTIFICATION_FETCH_TASK = "refresh-feeds-on-notification";
 
 export const onNotification = (data: any) => {
-  console.log("onNotification", data);
+  firebase.analytics().logEvent("notification", {data});
   const { refresh = null } = data;
 
   if (refresh === true) {
