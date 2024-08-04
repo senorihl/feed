@@ -15,6 +15,7 @@
     "@react-native-firebase/app": "^20.3.0",
     "@react-native-firebase/crashlytics": "^20.3.0",
     "@react-native-firebase/firestore": "^20.3.0",
+    "@react-native-firebase/messaging": "^20.3.0",
     "@reduxjs/toolkit": "^1.8.4",
     "@shopify/flash-list": "1.6.4",
     "deepmerge": "^4.3.1",

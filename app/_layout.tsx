@@ -28,6 +28,7 @@ import firebase from "@react-native-firebase/app";
 import "@react-native-firebase/analytics";
 import "@react-native-firebase/crashlytics";
 import "@react-native-firebase/firestore";
+import "@react-native-firebase/messaging";
 import {
   NOTIFICATION_FETCH_TASK,
   onNotification,
@@ -64,6 +65,10 @@ const reducer: React.Reducer<ReducerInitialState, ReducerAction> = (
 SplashScreen.preventAutoHideAsync();
 
 Notifications.registerTaskAsync(NOTIFICATION_FETCH_TASK);
+
+firebase.messaging().setBackgroundMessageHandler(async remoteMessage => {
+  firebase.analytics().logEvent("fnotification", {data: remoteMessage.data});
+});
 
 Notifications.setNotificationHandler({
   handleNotification: async (notification) => {
