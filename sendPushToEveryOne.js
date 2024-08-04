@@ -74,21 +74,33 @@ getDocs(
   }, []);
 
   let chunks = expo.chunkPushNotifications(messages);
-  let tickets = [];
   (async () => {
     console.log(`::group::Send notification (${messages.length})`);
     for (let chunk of chunks) {
       try {
-        let ticketChunk = await expo.sendPushNotificationsAsync(chunk);
-        ticketChunk.forEach((ticket) => {
-          if (ticket.status === 'ok') {
-            console.log(ticket.id);
-          } else {
-            console.error('::error::' + ticket.message);
+        const res = await Promise.allSettled(chunk.map(async (message) => {
+          return {
+            to: message.to,
+            result: await fetch('https://api.expo.dev/v2/push/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({to: message.to, data: message.data}),
+            }).then(res => res.json())
           }
-        })
-        
-        tickets.push(...ticketChunk);
+        }));
+
+        res.forEach((result) => {
+          if (result.status === 'fulfilled') {
+            if (typeof result.value?.result?.data?.id === 'string') {
+              console.log('Sent to', result.value.to, 'with receipt', result.value?.result.data?.id);
+            } else {
+              console.error(`::error::Failed for`,  result.value.to, 'with message',  result.value?.result.data?.message);
+            }
+          } else {
+            console.error(`::error::${result.reason}`);
+          }
+        });
+
       } catch (error) {
         console.error(`::error::${error}`);
       }
