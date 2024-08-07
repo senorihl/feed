@@ -66,8 +66,8 @@ SplashScreen.preventAutoHideAsync();
 
 Notifications.registerTaskAsync(NOTIFICATION_FETCH_TASK);
 
-firebase.messaging().setBackgroundMessageHandler(async remoteMessage => {
-  firebase.analytics().logEvent("fnotification", {data: remoteMessage.data});
+firebase.messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+  firebase.analytics().logEvent("fnotification", { data: remoteMessage.data });
 });
 
 Notifications.setNotificationHandler({
@@ -101,7 +101,7 @@ export default function Layout() {
   const onLayoutRootView = React.useCallback(async () => {
     await SplashScreen.hideAsync();
     firebase.analytics().logAppOpen();
-    const {token, nativeToken} = await registerForPushNotificationsAsync();
+    const { token, nativeToken } = await registerForPushNotificationsAsync();
 
     if (token || nativeToken) {
       store.dispatch(savePushToken({ token, nativeToken }));
@@ -175,7 +175,10 @@ export default function Layout() {
                 onLayout={onLayoutRootView}
                 style={[StyleSheet.absoluteFill]}
               >
-                <Stack initialRouteName="index" screenOptions={{}}>
+                <Stack
+                  initialRouteName="index"
+                  screenOptions={{ headerBackTitleVisible: false }}
+                >
                   <Stack.Screen
                     name="index"
                     options={{
@@ -197,6 +200,42 @@ export default function Layout() {
                   />
                   <Stack.Screen
                     name="feed/[url]"
+                    options={({
+                      route: {
+                        params: { name, url, ...params },
+                        ...route
+                      },
+                      ...rest
+                    }) => {
+                      console.log({ name, url, params, route, rest });
+                      return {
+                        title: name,
+                        headerRight(props) {
+                          return (
+                            <TouchableOpacity
+                              onPress={() =>
+                                router.push({
+                                  pathname: "feed/[url]/settings",
+                                  params: {
+                                    name,
+                                    url: decodeURIComponent(url),
+                                  },
+                                })
+                              }
+                            >
+                              <Icon
+                                size={20}
+                                name="cog"
+                                color={props.tintColor}
+                              />
+                            </TouchableOpacity>
+                          );
+                        },
+                      };
+                    }}
+                  />
+                  <Stack.Screen
+                    name="feed/[url]/settings"
                     options={({
                       route: {
                         params: { name },
@@ -273,14 +312,12 @@ async function registerForPushNotificationsAsync() {
       if (!projectId) {
         throw new Error("Project ID not found");
       }
-      nativeToken = (
-        await Notifications.getDevicePushTokenAsync()
-      ).data;
+      nativeToken = (await Notifications.getDevicePushTokenAsync()).data;
       console.log(nativeToken);
     } catch (e) {
       token = nativeToken;
     }
   }
 
-  return {token, nativeToken};
+  return { token, nativeToken };
 }

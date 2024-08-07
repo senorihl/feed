@@ -17,6 +17,7 @@ export type ConfigurationInterface = {
       updated: string;
       lastUpdated?: string;
       icon?: string;
+      customName?: string;
     };
   };
 };
@@ -96,7 +97,13 @@ const configurationSlice = createSlice({
     saveInstallationId(state, action: PayloadAction) {
       state.installationId = state.installationId || Crypto.randomUUID();
     },
-    savePushToken(state, action: PayloadAction<{ token: string|null, nativeToken: string|null }>) {
+    savePushToken(
+      state,
+      action: PayloadAction<{
+        token: string | null;
+        nativeToken: string | null;
+      }>
+    ) {
       state.installationId = state.installationId || Crypto.randomUUID();
       state.pushToken = action.payload.token;
       firebase
@@ -134,8 +141,16 @@ const configurationSlice = createSlice({
       }
     },
     removeFeed(state, action: PayloadAction<string>) {
-      if (typeof state.feeds[action.payload]) {
+      if (typeof state.feeds[action.payload] !== "undefined") {
         delete state.feeds[action.payload];
+      }
+    },
+    renameFeed(
+      state,
+      action: PayloadAction<{ url: string; name: string | undefined }>
+    ) {
+      if (typeof state.feeds[action.payload.url] !== "undefined") {
+        state.feeds[action.payload.url].customName = action.payload.name;
       }
     },
   },
@@ -161,6 +176,7 @@ export const {
   saveLocale,
   updateFeedFetchDate,
   removeFeed,
+  renameFeed,
 } = configurationSlice.actions;
 export const { name } = configurationSlice;
 export default configurationSlice.reducer;

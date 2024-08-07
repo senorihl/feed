@@ -13,6 +13,7 @@ import {
   Text,
   ActivityIndicator,
 } from "react-native-paper";
+import { router, useLocalSearchParams } from "expo-router";
 import {
   addFeed,
   addOPML,
@@ -39,9 +40,12 @@ const locales = {
 
 const Settings: React.FC = () => {
   const theme = useTheme();
+  const params = useLocalSearchParams();
   const { status, isRegistered, checkStatusAsync } = useStatus();
   const [toRemoveFeed, setToRemoveFeed] = React.useState<string | null>(null);
-  const [addFeedVisible, setAddFeedVisible] = React.useState(false);
+  const [addFeedVisible, setAddFeedVisible] = React.useState(
+    typeof params["addFeedOpened"] === "string"
+  );
   const [isWorking, setWorking] = React.useState(false);
   const [feedURL, setFeedURL] = React.useState<string>();
   const [feedURLError, setFeedURLError] = React.useState(false);
@@ -112,6 +116,7 @@ const Settings: React.FC = () => {
               error={feedURLError}
               placeholder={i18n.t("settings.popin.feedUrl")}
               onChangeText={(val) => setFeedURL(val)}
+              autoFocus
               right={isWorking ? <ActivityIndicator size={"small"} /> : void 0}
             />
             <HelperText type={feedURLError ? "error" : "info"} visible>
@@ -297,11 +302,13 @@ const Settings: React.FC = () => {
                 key={`config-feed-${url}`}
                 title={title}
                 description={url}
-                right={(props) => (
-                  <TouchableOpacity onPress={() => setToRemoveFeed(url)}>
-                    <List.Icon {...props} icon="trash-can" />
-                  </TouchableOpacity>
-                )}
+                onPress={() => {
+                  router.push({
+                    pathname: "/feed/[url]/settings",
+                    params: { url: url, name: title },
+                  });
+                }}
+                right={(props) => <List.Icon {...props} icon="chevron-right" />}
               />
             );
           })}

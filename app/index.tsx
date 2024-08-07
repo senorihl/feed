@@ -45,68 +45,89 @@ export default function Titles() {
 
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: bottom }}>
-      {Object.entries(feeds).map(([url, { title, updated, lastUpdated }]) => {
-        if (!updated || !title || !url) {
-          return <></>;
-        }
-        return (
-          <PaperList.Item
-            key={`config-feed-${url}`}
-            title={title}
-            description={(props) => {
-              let descriptionNumberOfLines = 1;
-              let description = i18n.t("feed.updatedOn", {
-                date: Intl.DateTimeFormat(locale, {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                  timeZone: cal[0].timeZone,
-                }).format(Date.parse(updated)),
-              });
+      {Object.entries(feeds).map(
+        ([url, { title, updated, lastUpdated, customName }]) => {
+          if (!updated || !title || !url) {
+            return <></>;
+          }
+          return (
+            <PaperList.Item
+              key={`config-feed-${url}`}
+              title={customName || title}
+              description={(props) => {
+                let descriptionNumberOfLines = 1;
+                let description = i18n.t("feed.updatedOn", {
+                  date: Intl.DateTimeFormat(locale, {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                    timeZone: cal[0].timeZone,
+                  }).format(Date.parse(updated)),
+                });
 
-              if (typeof lastUpdated !== "undefined") {
-                descriptionNumberOfLines++;
-                description +=
-                  "\n" +
-                  i18n.t("feed.lastContentOn", {
-                    date: Intl.DateTimeFormat(locale, {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                      timeZone: cal[0].timeZone,
-                    }).format(Date.parse(lastUpdated)),
-                  });
+                if (typeof lastUpdated !== "undefined") {
+                  descriptionNumberOfLines++;
+                  description +=
+                    "\n" +
+                    i18n.t("feed.lastContentOn", {
+                      date: Intl.DateTimeFormat(locale, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                        timeZone: cal[0].timeZone,
+                      }).format(Date.parse(lastUpdated)),
+                    });
+                }
+
+                return (
+                  <Text
+                    selectable={props.selectable}
+                    numberOfLines={descriptionNumberOfLines}
+                    ellipsizeMode={props.ellipsizeMode}
+                    style={{ color: props.color, fontSize: props.fontSize }}
+                  >
+                    {description}
+                  </Text>
+                );
+              }}
+              disabled={refreshList[url] && refreshList[url] === true}
+              right={(props) =>
+                refreshList[url] && refreshList[url] === true ? (
+                  <ActivityIndicator {...props} size={"small"} />
+                ) : (
+                  <PaperList.Icon icon="chevron-right" {...props} />
+                )
               }
-
-              return (
-                <Text
-                  selectable={props.selectable}
-                  numberOfLines={descriptionNumberOfLines}
-                  ellipsizeMode={props.ellipsizeMode}
-                  style={{ color: props.color, fontSize: props.fontSize }}
-                >
-                  {description}
-                </Text>
-              );
-            }}
-            disabled={refreshList[url] && refreshList[url] === true}
-            right={(props) =>
-              refreshList[url] && refreshList[url] === true ? (
-                <ActivityIndicator {...props} size={"small"} />
-              ) : (
-                <Icon name="chevron-right" {...props} size={20} />
-              )
-            }
-            onPress={() => {
-              router.push({
-                pathname: "/feed/[url]",
-                params: { url: url, name: title },
-              });
-            }}
-          />
-        );
-      })}
-      <Button icon={"refresh"} onPress={triggerRefresh}>
-        {i18n.t("feed.updateAll")}
-      </Button>
+              onPress={() => {
+                router.push({
+                  pathname: "/feed/[url]",
+                  params: { url: url, name: customName || title },
+                });
+              }}
+            />
+          );
+        }
+      )}
+      {Object.keys(feeds).length > 0 ? (
+        <Button
+          icon={"refresh"}
+          onPress={triggerRefresh}
+          style={{ marginTop: 20, alignSelf: "center" }}
+        >
+          {i18n.t("feed.updateAll")}
+        </Button>
+      ) : (
+        <Button
+          icon={"plus-circle"}
+          onPress={() => {
+            router.push({
+              pathname: "settings",
+              params: { addFeedOpened: "" },
+            });
+          }}
+          style={{ marginTop: 20, alignSelf: "center" }}
+        >
+          {i18n.t("settings.addFeed")}
+        </Button>
+      )}
     </ScrollView>
   );
 }
